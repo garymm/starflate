@@ -2,6 +2,12 @@
 
 Deflate on GPU
 
+## TODO
+
+BUILD is not currently using the hermetic clang toolchain, should
+look at https://github.com/bazel-contrib/rules_cuda/issues/4
+
+
 ## References
 
 * [DEFLATE Compressed Data Format Specification version 1.3](https://tools.ietf.org/html/rfc1951)
