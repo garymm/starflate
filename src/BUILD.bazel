@@ -1,0 +1,10 @@
+cc_library(
+    name = "decompress",
+    hdrs = ["decompress.hpp"],
+)
+
+cc_test(
+    name = "decompress_test",
+    srcs = ["decompress_test.cpp"],
+    deps = [":decompress"],
+)
