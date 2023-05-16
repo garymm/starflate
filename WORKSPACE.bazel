@@ -1,19 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-http_archive(
-    name = "rules_cuda",
-    sha256 = "dc1f4f704ca56e3d5edd973f98a45f0487d0f28c689d0a57ba236112148b1833",
-    strip_prefix = "rules_cuda-v0.1.2",
-    urls = ["https://github.com/bazel-contrib/rules_cuda/releases/download/v0.1.2/rules_cuda-v0.1.2.tar.gz"],
-)
-
-load("@rules_cuda//cuda:repositories.bzl", "register_detected_cuda_toolchains", "rules_cuda_dependencies")
-
-rules_cuda_dependencies()
-
-register_detected_cuda_toolchains()
-
 BAZEL_BOOTLIN_COMMIT = "4ded1105ba0e2060003e6ac2660ff57815fe0296"
+
 http_archive(
     name = "bazel_bootlin",
     sha256 = "197a5408d571aa5b95001a9091c06aec55451bbd9b696d37dad122396b9d5652",
@@ -59,5 +47,24 @@ bootlin_toolchain(
 )
 
 register_toolchains(
-    "@{toolchain_name}//:toolchain".format(toolchain_name = "gcc_12_2_toolchain")
+    "@{toolchain_name}//:toolchain".format(toolchain_name = "gcc_12_2_toolchain"),
+)
+
+HIP_CPU_VERSION = "06186c545308173babda129d6f0cb795b322a5c7"
+
+http_archive(
+    name = "hip_cpu",
+    build_file = "//:third_party/hip_cpu.BUILD.bazel",
+    sha256 = "e76b3c35e380971439268a8f8bff5adaa4fadfb5b45d76e3c919dee884988d83",
+    strip_prefix = "HIP-CPU-%s" % HIP_CPU_VERSION,
+    url = "https://github.com/ROCm-Developer-Tools/HIP-CPU/archive/%s.tar.gz" % HIP_CPU_VERSION,
+)
+
+ONETBB_VERSION = "2021.9.0"
+
+http_archive(
+    name = "onetbb",
+    sha256 = "1ce48f34dada7837f510735ff1172f6e2c261b09460e3bf773b49791d247d24e",
+    strip_prefix = "oneTBB-%s" % ONETBB_VERSION,
+    url = "https://github.com/oneapi-src/oneTBB/archive/refs/tags/v%s.tar.gz" % ONETBB_VERSION,
 )
