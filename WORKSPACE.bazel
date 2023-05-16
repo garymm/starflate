@@ -44,3 +44,23 @@ load("@rules_cuda//cuda:repositories.bzl", "register_detected_cuda_toolchains", 
 rules_cuda_dependencies()
 
 register_detected_cuda_toolchains()
+
+HIP_CPU_VERSION = "06186c545308173babda129d6f0cb795b322a5c7"
+
+http_archive(
+    name = "hip_cpu",
+    build_file = "//:third_party/hip_cpu.BUILD.bazel",
+    sha256 = "e76b3c35e380971439268a8f8bff5adaa4fadfb5b45d76e3c919dee884988d83",
+    strip_prefix = "HIP-CPU-%s" % HIP_CPU_VERSION,
+    url = "https://github.com/ROCm-Developer-Tools/HIP-CPU/archive/%s.tar.gz" % HIP_CPU_VERSION,
+)
+
+http_archive(
+    name = "rules_foreign_cc",
+    strip_prefix = "rules_foreign_cc-0.9.0",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.9.0.tar.gz",
+)
+
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies()

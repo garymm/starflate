@@ -1,0 +1,17 @@
+"""BUILD file for hip_cpu"""
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+filegroup(
+    name = "hip_cpu_src",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "hip_cpu",
+    lib_source = ":hip_cpu_src",
+    generate_args = [
+        "-GNinja",
+        "-DCMAKE_CXX_FLAGS=-stdlib=libc++",
+    ],
+)
