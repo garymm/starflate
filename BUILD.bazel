@@ -13,3 +13,9 @@ cc_binary(
     srcs = ["main.cpp"],
     deps = [":kernel"],
 )
+
+cc_binary(
+    name = "hip_info",
+    srcs = ["hip_info.cpp"],
+    deps = ["@hip_cpu//include/hip"],
+)

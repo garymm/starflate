@@ -1,36 +1,61 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_TOOLCHAIN_VERSION = "d52ce5d96915428a5ee6f7079078df706c5fddab"
+# BAZEL_TOOLCHAIN_VERSION = "d52ce5d96915428a5ee6f7079078df706c5fddab"
+
+# http_archive(
+#     name = "com_grail_bazel_toolchain",
+#     sha256 = "a9090ac21368aa499ccecd5c1219ba213af8f81966ad86b379e045ab1358b6a5",
+#     strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
+#     url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
+# )
+
+# load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+# bazel_toolchain_dependencies()
+
+# load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+
+# llvm_toolchain(
+#     name = "llvm_toolchain",
+#     cxx_flags = {"": [
+#         "-std=c++2b",
+#         "-fdiagnostics-color=always",
+#         "-Werror",
+#         "-Wall",
+#         "-Wextra",
+#         "-stdlib=libc++",
+#     ]},
+#     llvm_version = "16.0.0",
+# )
+
+# load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+# llvm_register_toolchains()
+
+GCC_TOOLCHAIN_VERSION = "0.4.2"
 
 http_archive(
-    name = "com_grail_bazel_toolchain",
-    sha256 = "a9090ac21368aa499ccecd5c1219ba213af8f81966ad86b379e045ab1358b6a5",
-    strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
-    url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
+    name = "aspect_gcc_toolchain",
+    sha256 = "3341394b1376fb96a87ac3ca01c582f7f18e7dc5e16e8cf40880a31dd7ac0e1e",
+    strip_prefix = "gcc-toolchain-%s" % GCC_TOOLCHAIN_VERSION,
+    urls = ["https://github.com/aspect-build/gcc-toolchain/archive/refs/tags/%s.tar.gz" % GCC_TOOLCHAIN_VERSION],
 )
 
-load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@aspect_gcc_toolchain//toolchain:repositories.bzl", "gcc_toolchain_dependencies")
 
-bazel_toolchain_dependencies()
+gcc_toolchain_dependencies()
 
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("@aspect_gcc_toolchain//toolchain:defs.bzl", "ARCHS", "gcc_register_toolchain")
 
-llvm_toolchain(
-    name = "llvm_toolchain",
-    cxx_flags = {"": [
-        "-std=c++2b",
-        "-fdiagnostics-color=always",
-        "-Werror",
-        "-Wall",
-        "-Wextra",
-        "-stdlib=libc++",
-    ]},
-    llvm_version = "16.0.0",
+gcc_register_toolchain(
+    name = "gcc_toolchain_aarch64",
+    target_arch = ARCHS.aarch64,
 )
 
-load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
-
-llvm_register_toolchains()
+gcc_register_toolchain(
+    name = "gcc_toolchain_x86_64",
+    target_arch = ARCHS.x86_64,
+)
 
 http_archive(
     name = "rules_cuda",
@@ -45,14 +70,20 @@ rules_cuda_dependencies()
 
 register_detected_cuda_toolchains()
 
-HIP_CPU_VERSION = "06186c545308173babda129d6f0cb795b322a5c7"
+# HIP_CPU_VERSION = "06186c545308173babda129d6f0cb795b322a5c7"
 
-http_archive(
+# http_archive(
+#     name = "hip_cpu",
+#     build_file = "//:third_party/hip_cpu.BUILD.bazel",
+#     sha256 = "e76b3c35e380971439268a8f8bff5adaa4fadfb5b45d76e3c919dee884988d83",
+#     strip_prefix = "HIP-CPU-%s" % HIP_CPU_VERSION,
+#     url = "https://github.com/ROCm-Developer-Tools/HIP-CPU/archive/%s.tar.gz" % HIP_CPU_VERSION,
+# )
+
+# Same as https://github.com/garymm/HIP-CPU
+local_repository(
     name = "hip_cpu",
-    build_file = "//:third_party/hip_cpu.BUILD.bazel",
-    sha256 = "e76b3c35e380971439268a8f8bff5adaa4fadfb5b45d76e3c919dee884988d83",
-    strip_prefix = "HIP-CPU-%s" % HIP_CPU_VERSION,
-    url = "https://github.com/ROCm-Developer-Tools/HIP-CPU/archive/%s.tar.gz" % HIP_CPU_VERSION,
+    path = "/home/garymm/src/ROCm-Developer-Tools/HIP-CPU",
 )
 
 http_archive(
