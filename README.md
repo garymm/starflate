@@ -4,8 +4,13 @@ Deflate on GPU
 
 ## TODO
 
-BUILD is not currently using the hermetic clang toolchain, should
-look at https://github.com/bazel-contrib/rules_cuda/issues/4
+* Trying to get code that depends on HIP-CPU to build with bazel.
+  Seems we need to depend on Intel's TBB.
+
+* If we decide to not use HIP and just do CUDA:
+  build of CUDA code is not currently using the hermetic clang toolchain,
+  rather it's relying on the system's nvcc. should
+  look at https://github.com/bazel-contrib/rules_cuda/issues/4.
 
 
 ## References
