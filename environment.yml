@@ -2,6 +2,7 @@ name: gpu-deflate
 channels:
   - conda-forge
 dependencies:
-  - bazel
-  - gcc
-  - gxx
+  - bazel==6.2.0
+  # Note: Official CUDA Ubuntu 22.04 container uses 11.3.0.
+  - gcc==12.2.0
+  - gxx==12.2.0
