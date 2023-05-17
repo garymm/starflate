@@ -14,8 +14,15 @@ cc_binary(
     deps = [":kernel"],
 )
 
-cc_binary(
+cc_library(
     name = "hip_info",
     srcs = ["hip_info.cpp"],
-    deps = ["@hip_cpu//include/hip"],
+    hdrs = ["hip_info.hpp"],
+    deps = ["@hip_cpu//:hip"],
+)
+
+cc_binary(
+    name = "print_hip_info",
+    srcs = ["print_hip_info.cpp"],
+    deps = [":hip_info"],
 )

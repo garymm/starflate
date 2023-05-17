@@ -48,7 +48,6 @@ double bytesToGB(size_t s) { return (double)s / (1024.0 * 1024.0 * 1024.0); }
         std::cout << setw(w1) << #limit ": " << val << " " << units << std::endl;                  \
     }
 
-
 void printDeviceProp(int deviceId) {
     using namespace std;
     const int w1 = 34;
@@ -174,13 +173,8 @@ void printDeviceProp(int deviceId) {
          << (float)free / total * 100.0 << "%)" << endl;
 }
 
-int main(int argc, char* argv[]) {
-    using namespace std;
 
-    cout << endl;
-
-    printCompilerInfo();
-
+void printDeviceProps() {
     int deviceCnt;
 
     HIPCHECK(hipGetDeviceCount(&deviceCnt));
@@ -189,6 +183,4 @@ int main(int argc, char* argv[]) {
         hipSetDevice(i);
         printDeviceProp(i);
     }
-
-    std::cout << std::endl;
 }

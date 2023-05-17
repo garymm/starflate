@@ -21,7 +21,9 @@ Deflate on GPU
 
 ## TODO
 
-* Get code to build and run using HIP and CUDA. Currently HIP-CPU works and CUDA alone works.
+* Get code to build and run using HIP and CUDA. Currently HIP-CPU works.
+  CUDA alone used to work before I switched to using GCC from conda.
+  Should try to get that working first.
 
 
 ## References

@@ -1,0 +1,3 @@
+void printCompilerInfo();
+
+void printDeviceProps();

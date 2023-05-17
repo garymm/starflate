@@ -1,0 +1,32 @@
+cc_library(
+    name = "hip",
+    srcs = glob([
+        "src/**/*.hpp",
+        "src/**/*.inl",
+    ]),
+    hdrs = glob(["include/hip/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":half",
+        ":libco",
+        ":moodycamel",
+        "@onetbb//:tbb",
+    ],
+)
+
+cc_library(
+    name = "libco",
+    srcs = glob(["external/libco/*.inl"]) + ["external/libco/settings.h"],
+    hdrs = ["external/libco/libco.h"],
+)
+
+cc_library(
+    name = "moodycamel",
+    hdrs = glob(["external/moodycamel/*.h"]),
+)
+
+cc_library(
+    name = "half",
+    hdrs = ["external/half/half.hpp"],
+)
