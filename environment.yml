@@ -1,0 +1,7 @@
+name: gpu-deflate
+channels:
+  - conda-forge
+dependencies:
+  - bazel
+  - gcc
+  - gxx

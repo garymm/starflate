@@ -2,15 +2,26 @@
 
 Deflate on GPU
 
+## Set up
+
+* Install conda and mamba
+* `mamba env create -f environment.yml`
+* Activate the environment.
+    * If using direnv:
+      `echo 'layout anaconda gpu-deflate' > .envrc`
+      `direnv allow`
+    * Else: `conda activate gpu-deflate`
+* Test you can build: `bazel build //...`.
+
+## Notes
+
+* Using gcc from conda rather than hermetic LLVM toolchain managed by bazel
+  because HIP-CPU requires std::execution, which is not implemented in LLVM 16.
+  If / when LLVM implements it we can switch to hermetic LLVM toolchain.
+
 ## TODO
 
-* Trying to get code that depends on HIP-CPU to build with bazel.
-  Seems we need to depend on Intel's TBB.
-
-* If we decide to not use HIP and just do CUDA:
-  build of CUDA code is not currently using the hermetic clang toolchain,
-  rather it's relying on the system's nvcc. should
-  look at https://github.com/bazel-contrib/rules_cuda/issues/4.
+* Get code to build and run using HIP and CUDA. Currently HIP-CPU works and CUDA alone works.
 
 
 ## References
