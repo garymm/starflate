@@ -104,3 +104,14 @@ http_archive(
     strip_prefix = "HIP-%s" % HIP_VERSION,
     url = "https://github.com/ROCm-Developer-Tools/HIP/archive/refs/tags/%s.tar.gz" % HIP_VERSION,
 )
+
+load("//:tools/system_repo.bzl", "system_repo")
+
+system_repo(
+    name = "system_libs_linux_x86_64",
+    build_file = "//:third_party/system_libs_linux_x86_64.BUILD.bazel",
+    symlinks = {
+        "x86_64-linux-gnu": "/usr/lib/x86_64-linux-gnu",
+        "include": "/usr/include",
+    },
+)
