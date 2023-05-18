@@ -1,10 +1,10 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_BOOTLIN_COMMIT = "4ded1105ba0e2060003e6ac2660ff57815fe0296"
+BAZEL_BOOTLIN_COMMIT = "22ee91e01bbbc0711444c49102e92010fc6d6c95"
 
 http_archive(
     name = "bazel_bootlin",
-    sha256 = "197a5408d571aa5b95001a9091c06aec55451bbd9b696d37dad122396b9d5652",
+    sha256 = "3acd4ebca797fb05db00b1ebcac831fa920f503dd611c255c7f80cfad944182e",
     strip_prefix = "bazel_bootlin-{commit}".format(commit = BAZEL_BOOTLIN_COMMIT),
     url = "https://github.com/oliverlee/bazel_bootlin/archive/{commit}.tar.gz".format(
         commit = BAZEL_BOOTLIN_COMMIT,
