@@ -1,0 +1,42 @@
+UseColor: true
+Checks: >
+    bugprone-*,
+    clang-analyzer-cplusplus*,
+    concurrency-*,
+    cppcoreguidelines-*,
+    misc-*,
+    modernize-*,
+    performance-*,
+    readability-*,
+
+    # Bazel does this for determinism,
+    -clang-diagnostic-builtin-macro-redefined,
+
+    # suppress due to assert,
+    -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+
+    # already only used when necessary,
+    -modernize-avoid-c-arrays,
+
+    # use domain notation,
+    -readability-identifier-length,
+
+    # allow unused variables to be unnamed,
+    -readability-named-parameter,
+
+    # simplify access frame unit vectors,
+    -readability-static-accessed-through-instance,
+
+    # disable aliases,
+    -cppcoreguidelines-avoid-c-arrays,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-c-copy-assignment-signature,
+    -cppcoreguidelines-explicit-virtual-functions,
+    -cppcoreguidelines-non-private-member-variables-in-classes,
+
+#WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+
+CheckOptions:
+    - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+      value: 1

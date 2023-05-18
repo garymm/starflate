@@ -4,10 +4,32 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 cc_binary(
     name = "std_execution_available",
     srcs = ["std_execution_available.cpp"],
+    copts = [
+        "-v",
+        "--gcc-toolchain=external/gcc_12_2_toolchain_files/lib/gcc/x86_64-buildroot-linux-gnu/12.2.0",
+        "--sysroot/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/sysroot",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/sysroot/usr/include",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/lib/gcc/x86_64-buildroot-linux-gnu/12.2.0/include",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/lib/gcc/x86_64-buildroot-linux-gnu/12.2.0/include-fixed",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include/c++/12.2.0",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include/c++/12.2.0/x86_64-buildroot-linux-gnu",
+    ],
 )
 
 # Verify that the selected C++ toolchain provides std::expected
 cc_binary(
     name = "std_expected_available",
     srcs = ["std_expected_available.cpp"],
+    copts = [
+        "-v",
+        "--gcc-toolchain=external/gcc_12_2_toolchain_files/lib/gcc/x86_64-buildroot-linux-gnu/12.2.0",
+        "--sysroot/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/sysroot",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/sysroot/usr/include",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/lib/gcc/x86_64-buildroot-linux-gnu/12.2.0/include",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/lib/gcc/x86_64-buildroot-linux-gnu/12.2.0/include-fixed",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include/c++/12.2.0",
+        "-isystem/home/oliver/.cache/bazel/_bazel_oliver/adb62031b64cc76568fe096c0cc5a5f9/external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include/c++/12.2.0/x86_64-buildroot-linux-gnu",
+    ],
 )

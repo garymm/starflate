@@ -68,3 +68,58 @@ http_archive(
     strip_prefix = "oneTBB-%s" % ONETBB_VERSION,
     url = "https://github.com/oneapi-src/oneTBB/archive/refs/tags/v%s.tar.gz" % ONETBB_VERSION,
 )
+
+BAZEL_TOOLCHAIN_COMMIT = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
+
+http_archive(
+    name = "bazel_toolchain",
+    sha256 = "52b09a61b9a03f4e0994402243a03018a858da6a5774de898f99e344520e9a25",
+    strip_prefix = "bazel-toolchain-{commit}".format(commit = BAZEL_TOOLCHAIN_COMMIT),
+    url = "https://github.com/grailbio/bazel-toolchain/archive/{commit}.tar.gz".format(
+        commit = BAZEL_TOOLCHAIN_COMMIT,
+    ),
+)
+
+load("@bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+
+bazel_toolchain_dependencies()
+
+llvm_toolchain(
+    name = "llvm_16_0_toolchain",
+    cxx_flags = {
+        "linux-x86_64": [
+            "-std=c++2b",
+            "-stdlib=libstdc++",
+            #"--sysroot=external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/sysroot",
+        ],
+    },
+    stdlib = {
+        "linux-x86_64": "stdc++",
+    },
+    llvm_version = "16.0.0",
+#    cxx_builtin_include_directories = {
+#        "linux-x86_64": [
+#            "external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include/c++/12.2.0",
+#            "external/gcc_12_2_toolchain_files/x86_64-buildroot-linux-gnu/include/c++/12.2.0/x86_64-buildroot-linux_gnu",
+#        ],
+#    },
+    sysroot = {
+        "linux-x86_64": "@gcc_12_2_toolchain_files",
+    },
+)
+
+#register_toolchains(
+#    "@{toolchain_name}//:cc-toolchain-x86_64-linux".format(toolchain_name = "llvm_16_0_toolchain"),
+#)
+
+BAZEL_CLANG_TIDY_COMMIT = "674fac7640ae0469b7a58017018cb1497c26e2bf"
+
+http_archive(
+    name = "bazel_clang_tidy",
+    sha256 = "72756cb8111d32d406a819b4d1fb65f7c90c935e8f846dc79c2da270856cf8d9",
+    strip_prefix = "bazel_clang_tidy-{commit}".format(commit = BAZEL_CLANG_TIDY_COMMIT),
+    url = "https://github.com/erenon/bazel_clang_tidy/archive/{commit}.tar.gz".format(
+        commit = BAZEL_CLANG_TIDY_COMMIT,
+    ),
+)

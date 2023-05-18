@@ -20,3 +20,9 @@ cc_binary(
     srcs = ["print_hip_info.cpp"],
     deps = [":hip_info"],
 )
+
+filegroup(
+    name = "tidy_config",
+    srcs = [".clang-tidy"],
+    visibility = ["//visibility:public"],
+)
