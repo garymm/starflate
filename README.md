@@ -4,6 +4,8 @@ Deflate on GPU
 
 ## Set up
 
+Currently only supported on Linux x86_64 / AMD64.
+
 * Install `bazel` or `bazelisk`
 
 * Verify that you have pulled in an appropriate toolchain
@@ -19,9 +21,7 @@ bazel run //:print_hip_info
 
 ## TODO
 
-* Get code to build and run using HIP and CUDA. Currently HIP-CPU works.
-  CUDA alone used to work before I switched to using GCC from conda.
-  Should try to get that working first.
+* Support building on ARM64.
 
 
 ## References
