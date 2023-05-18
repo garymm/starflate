@@ -2,6 +2,21 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# TODO: won't be needed if https://github.com/bazel-contrib/rules_cuda/pull/99 is released
+genrule(
+    name = "cpp_to_cu",
+    srcs = ["hip_info.cpp"],
+    outs = ["hip_info.cpp.cu"],
+    cmd = "for i in $(SRCS); do cp $$i $(GENDIR)/$$i.cu; done",
+)
+
+cuda_library(
+    name = "hip_info_cuda",
+    srcs = ["hip_info.cpp.cu"],
+    hdrs = ["hip_info.hpp"],
+    deps = ["@hip"],
+)
+
 cc_library(
     name = "hip_info",
     srcs = ["hip_info.cpp"],
@@ -18,5 +33,8 @@ cc_library(
 cc_binary(
     name = "print_hip_info",
     srcs = ["print_hip_info.cpp"],
-    deps = [":hip_info"],
+    deps = select({
+        "@rules_cuda//cuda:is_enabled": [":hip_info_cuda"],
+        "//conditions:default": [":hip_info"],
+    }),
 )
