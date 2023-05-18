@@ -1,15 +1,22 @@
-load("@rules_cuda//cuda:defs.bzl", "cuda_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cuda_library(
-    name = "kernel",
-    srcs = ["kernel.cu"],
-    hdrs = ["kernel.h"],
+cc_library(
+    name = "hip_info",
+    srcs = ["hip_info.cpp"],
+    hdrs = ["hip_info.hpp"],
+    copts = [
+        # allow warnings from external code
+        "-Wno-old-style-cast",
+        "-Wno-double-promotion",
+        "-Wno-conversion",
+    ],
+    deps = ["@hip_cpu"],
 )
 
 cc_binary(
-    name = "main",
-    srcs = ["main.cpp"],
-    deps = [":kernel"],
+    name = "print_hip_info",
+    srcs = ["print_hip_info.cpp"],
+    deps = [":hip_info"],
 )
