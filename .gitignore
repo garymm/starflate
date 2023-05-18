@@ -1,2 +1,4 @@
 bazel-*
 .envrc
+
+user.bazelrc
