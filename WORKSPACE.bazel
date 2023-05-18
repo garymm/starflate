@@ -1,37 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_TOOLCHAIN_VERSION = "d52ce5d96915428a5ee6f7079078df706c5fddab"
-
-http_archive(
-    name = "com_grail_bazel_toolchain",
-    sha256 = "a9090ac21368aa499ccecd5c1219ba213af8f81966ad86b379e045ab1358b6a5",
-    strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
-    url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
-)
-
-load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
-
-bazel_toolchain_dependencies()
-
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
-
-llvm_toolchain(
-    name = "llvm_toolchain",
-    cxx_flags = {"": [
-        "-std=c++2b",
-        "-fdiagnostics-color=always",
-        "-Werror",
-        "-Wall",
-        "-Wextra",
-        "-stdlib=libc++",
-    ]},
-    llvm_version = "16.0.0",
-)
-
-load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
-
-llvm_register_toolchains()
-
 http_archive(
     name = "rules_cuda",
     sha256 = "dc1f4f704ca56e3d5edd973f98a45f0487d0f28c689d0a57ba236112148b1833",
@@ -44,3 +12,52 @@ load("@rules_cuda//cuda:repositories.bzl", "register_detected_cuda_toolchains", 
 rules_cuda_dependencies()
 
 register_detected_cuda_toolchains()
+
+BAZEL_BOOTLIN_COMMIT = "4ded1105ba0e2060003e6ac2660ff57815fe0296"
+http_archive(
+    name = "bazel_bootlin",
+    sha256 = "197a5408d571aa5b95001a9091c06aec55451bbd9b696d37dad122396b9d5652",
+    strip_prefix = "bazel_bootlin-{commit}".format(commit = BAZEL_BOOTLIN_COMMIT),
+    url = "https://github.com/oliverlee/bazel_bootlin/archive/{commit}.tar.gz".format(
+        commit = BAZEL_BOOTLIN_COMMIT,
+    ),
+)
+
+load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
+
+# for mapping from buildroot version to gcc version
+# see https://toolchains.bootlin.com/releases_x86-64.html
+#
+bootlin_toolchain(
+    name = "gcc_12_2_toolchain",
+    architecture = "x86-64",
+    buildroot_version = "2022.08-1_bleeding",
+    extra_cxxflags = [
+        "-std=c++23",
+        "-fdiagnostics-color=always",
+        "-Werror",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wnon-virtual-dtor",
+        "-Wold-style-cast",
+        "-Wcast-align",
+        "-Wunused",
+        "-Woverloaded-virtual",
+        "-Wmisleading-indentation",
+        "-Wnull-dereference",
+        "-Wdouble-promotion",
+        "-Wformat=2",
+        "-Wimplicit-fallthrough",
+        "-Wduplicated-cond",
+        "-Wduplicated-branches",
+        "-Wlogical-op",
+        "-Wuseless-cast",
+    ],
+)
+
+register_toolchains(
+    "@{toolchain_name}//:toolchain".format(toolchain_name = "gcc_12_2_toolchain")
+)
