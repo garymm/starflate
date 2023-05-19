@@ -73,3 +73,22 @@ jobs:
           build \
           --config clang-format \
           //...
+
+  buildifier:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: bazelbuild/setup-bazelisk@v2
+
+    - name: mount bazel cache
+      uses: actions/cache@v3
+      with:
+        path: "~/.cache/bazel"
+        key: bazel-buildifier
+
+    - run: |
+        bazel \
+          --bazelrc=.github/workflows/ci.bazelrc \
+          run \
+          //:buildifier.check

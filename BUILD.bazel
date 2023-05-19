@@ -1,4 +1,5 @@
 load("@bazel_clang_format//:defs.bzl", "clang_format_update")
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -13,6 +14,18 @@ clang_format_update(
     name = "clang-format",
     binary = "@llvm_16_0_toolchain//:clang-format",
     config = ":format_config",
+)
+
+buildifier(
+    name = "buildifier.check",
+    lint_mode = "warn",
+    mode = "check",
+)
+
+buildifier(
+    name = "buildifier.fix",
+    lint_mode = "warn",
+    mode = "fix",
 )
 
 cc_library(
