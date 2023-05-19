@@ -1,0 +1,50 @@
+name: check
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  print_hip_info:
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [gcc12]
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: bazelbuild/setup-bazelisk@v2
+
+    - name: mount bazel cache
+      uses: actions/cache@v3
+      with:
+        path: "~/.cache/bazel"
+        key: bazel-print-hip-info-${{ matrix.toolchain }}
+
+    - run: |
+        bazel \
+          --bazelrc=.github/workflows/ci.bazelrc \
+          run \
+          //:print_hip_info
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: bazelbuild/setup-bazelisk@v2
+
+    - name: mount bazel cache
+      uses: actions/cache@v3
+      with:
+        path: "~/.cache/bazel"
+        key: bazel-test
+
+    - run: |
+        bazel \
+          --bazelrc=.github/workflows/ci.bazelrc \
+          test \
+          //...

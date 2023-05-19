@@ -1,14 +1,12 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_BOOTLIN_COMMIT = "4ded1105ba0e2060003e6ac2660ff57815fe0296"
+BAZEL_BOOTLIN_COMMIT = "22ee91e01bbbc0711444c49102e92010fc6d6c95"
 
 http_archive(
     name = "bazel_bootlin",
-    sha256 = "197a5408d571aa5b95001a9091c06aec55451bbd9b696d37dad122396b9d5652",
-    strip_prefix = "bazel_bootlin-{commit}".format(commit = BAZEL_BOOTLIN_COMMIT),
-    url = "https://github.com/oliverlee/bazel_bootlin/archive/{commit}.tar.gz".format(
-        commit = BAZEL_BOOTLIN_COMMIT,
-    ),
+    sha256 = "3acd4ebca797fb05db00b1ebcac831fa920f503dd611c255c7f80cfad944182e",
+    strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
+    url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
 )
 
 load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
@@ -46,9 +44,7 @@ bootlin_toolchain(
     ],
 )
 
-register_toolchains(
-    "@{toolchain_name}//:toolchain".format(toolchain_name = "gcc_12_2_toolchain"),
-)
+register_toolchains("@gcc_12_2_toolchain//:toolchain")
 
 HIP_CPU_VERSION = "06186c545308173babda129d6f0cb795b322a5c7"
 
