@@ -1,7 +1,20 @@
 load("@rules_cuda//cuda:defs.bzl", "cuda_library")
+load("@bazel_clang_format//:defs.bzl", "clang_format_update")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "format_config",
+    srcs = [".clang-format"],
+    visibility = ["//visibility:public"],
+)
+
+clang_format_update(
+    name = "clang-format",
+    binary = "@llvm_16_0_toolchain//:clang-format",
+    config = ":format_config",
+)
 
 # TODO: won't be needed if https://github.com/bazel-contrib/rules_cuda/pull/99 is released
 genrule(

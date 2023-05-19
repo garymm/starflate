@@ -23,3 +23,25 @@ jobs:
           --bazelrc=.github/workflows/ci.bazelrc \
           test \
           //...
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: mount bazel cache
+      uses: actions/cache@v3
+      with:
+        path: "~/.cache/bazel"
+        key: bazel-clang-tidy
+
+    - name: install libtinfo5
+      # clang format links against this
+      run: sudo apt-get install -y libtinfo5
+
+    - run: |
+        bazel \
+          --bazelrc=.github/workflows/ci.bazelrc \
+          build \
+          --config clang-format \
+          //...
