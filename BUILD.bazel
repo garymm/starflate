@@ -9,11 +9,16 @@ filegroup(
     srcs = [".clang-format"],
     visibility = ["//visibility:public"],
 )
-
 clang_format_update(
     name = "clang-format",
     binary = "@llvm_16_0_toolchain//:clang-format",
     config = ":format_config",
+)
+
+filegroup(
+    name = "tidy_config",
+    srcs = [".clang-tidy"],
+    visibility = ["//visibility:public"],
 )
 
 buildifier(
