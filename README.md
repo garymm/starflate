@@ -4,24 +4,39 @@ Deflate on GPU
 
 ## Set up
 
+Currently only supported on Linux x86_64 / AMD64.
+
 * Install `bazel` or `bazelisk`
 
-* Verify that you have pulled in an appropriate toolchain
+* Verify that you can build and test:
 ```
 bazel test //...
 ```
 
-* Get *HIP*
+* See what [HIP](https://rocm-developer-tools.github.io/HIP/) detects about your computer:
 
 ```
 bazel run //:print_hip_info
 ```
 
+If you have the CUDA toolkit installed,
+you can verify things are working with CUDA:
+
+```
+bazel run --cuda //:print_hip_info
+```
+
 ## TODO
 
-* Get code to build and run using HIP and CUDA. Currently HIP-CPU works.
-  CUDA alone used to work before I switched to using GCC from conda.
-  Should try to get that working first.
+* Support building on ARM64. Currently using Bootlin
+  toolchain which only exists for x86-64. Probably easiest
+  to:
+  *  wait for libc++ (LLVM's std lib) to implement
+     std::execution (AKA PSTL), then we can switch to use
+     LLVM toolchain, or
+  *  switch to conda environment or docker container
+     that installs the toolchain (don't use a bazel
+     hermetic toolchain).
 
 
 ## References
