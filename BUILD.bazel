@@ -15,6 +15,7 @@ cuda_library(
     name = "hip_info_cuda",
     srcs = ["hip_info.cpp.cu"],
     hdrs = ["hip_info.hpp"],
+    tags = ["manual"],
     deps = ["@hip"],
 )
 
