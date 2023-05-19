@@ -22,6 +22,7 @@ bootlin_toolchain(
     buildroot_version = "2022.08-1_bleeding",
     extra_cxxflags = [
         "-std=c++23",
+        "-march=native",
         "-fdiagnostics-color=always",
         "-Werror",
         "-Wall",
