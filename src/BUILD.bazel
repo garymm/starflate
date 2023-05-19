@@ -8,3 +8,9 @@ cc_test(
     srcs = ["decompress_test.cpp"],
     deps = [":decompress"],
 )
+
+cc_test(
+    name = "dummy_test",
+    srcs = ["dummy_test.cpp"],
+    deps = ["@boost_ut"],
+)
