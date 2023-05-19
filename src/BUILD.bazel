@@ -9,8 +9,16 @@ cc_test(
     deps = [":decompress"],
 )
 
+cc_library(
+    name = "huffman",
+    hdrs = ["huffman.hpp"],
+)
+
 cc_test(
-    name = "dummy_test",
-    srcs = ["dummy_test.cpp"],
-    deps = ["@boost_ut"],
+    name = "huffman_test",
+    srcs = ["huffman_test.cpp"],
+    deps = [
+        ":huffman",
+        "@boost_ut",
+    ],
 )
