@@ -116,3 +116,22 @@ system_repo(
         "include": "/usr/include",
     },
 )
+
+BOOST_UT_VERSION = "e53a47d37bc594e80bd5f1b8dc1ade8dce4429d3"
+
+http_archive(
+    name = "boost_ut",
+    build_file_content = """
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "boost_ut",
+    hdrs = ["include/boost/ut.hpp"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "abc90fa389a47504d06a88a56ddc9e580cf2654173bd14d211db714bb111b923",
+    strip_prefix = "ut-%s" % BOOST_UT_VERSION,
+    url = "https://github.com/boost-ext/ut/archive/%s.tar.gz" % BOOST_UT_VERSION,
+)
