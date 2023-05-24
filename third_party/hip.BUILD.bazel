@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 cc_library(
     name = "hip",
     hdrs = glob(["include/hip/*.h"]) + ["include/hip/hip_version.h"],

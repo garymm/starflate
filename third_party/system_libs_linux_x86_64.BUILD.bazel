@@ -1,3 +1,4 @@
+# buildifier: disable=module-docstring
 load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
 
 cc_import(
