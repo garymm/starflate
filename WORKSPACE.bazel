@@ -151,11 +151,11 @@ llvm_toolchain(
     llvm_version = "16.0.0",
 )
 
-BAZEL_CLANG_FORMAT_VERSION = "d1de0469f12f740d4b4884f88a5eff6e0245096c"
+BAZEL_CLANG_FORMAT_VERSION = "f4198b68887699a4d1862e44458e4969ad69fc8a"
 
 http_archive(
     name = "bazel_clang_format",
-    sha256 = "a90b76e346c67d7cea9939e02b87214fee0d6ac6aecb0af8294820ee08b31c1a",
+    sha256 = "bd75df6dae8d290a716e1812c463ef4ab36869b5557d8a6dd6abb8315acfc6ac",
     strip_prefix = "bazel_clang_format-%s" % BAZEL_CLANG_FORMAT_VERSION,
     url = "https://github.com/oliverlee/bazel_clang_format/archive/%s.tar.gz" % BAZEL_CLANG_FORMAT_VERSION,
 )
