@@ -1,0 +1,15 @@
+# buildifier: disable=module-docstring
+cc_library(
+    name = "hip",
+    hdrs = glob(["include/hip/*.h"]) + ["include/hip/hip_version.h"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = ["@hipamd//:hipamd"],
+)
+
+genrule(
+    name = "hip_version",
+    srcs = [],
+    outs = ["include/hip/hip_version.h"],
+    cmd = "touch \"$@\"",
+)

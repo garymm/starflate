@@ -1,0 +1,24 @@
+cc_library(
+    name = "decompress",
+    hdrs = ["decompress.hpp"],
+)
+
+cc_test(
+    name = "decompress_test",
+    srcs = ["decompress_test.cpp"],
+    deps = [":decompress"],
+)
+
+cc_library(
+    name = "huffman",
+    hdrs = ["huffman.hpp"],
+)
+
+cc_test(
+    name = "huffman_test",
+    srcs = ["huffman_test.cpp"],
+    deps = [
+        ":huffman",
+        "@boost_ut",
+    ],
+)

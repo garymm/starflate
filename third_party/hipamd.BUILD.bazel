@@ -1,0 +1,8 @@
+# buildifier: disable=module-docstring
+cc_library(
+    name = "hipamd",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = ["@system_libs_linux_x86_64//:libGL"],
+)

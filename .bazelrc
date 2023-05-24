@@ -1,0 +1,15 @@
+build --incompatible_enable_cc_toolchain_resolution
+build --action_env="BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1"
+
+# CUDA support can't be guaranteed by bazel,
+# so we disable it by default.
+build --flag_alias=cuda=@rules_cuda//cuda:enable
+build --cuda=false
+
+build:clang-format --aspects @bazel_clang_format//:defs.bzl%clang_format_aspect
+build:clang-format --@bazel_clang_format//:binary=@llvm_16_0_toolchain//:clang-format
+build:clang-format --@bazel_clang_format//:config=//:format_config
+build:clang-format --output_groups=report
+
+try-import %workspace%/user.bazelrc
+

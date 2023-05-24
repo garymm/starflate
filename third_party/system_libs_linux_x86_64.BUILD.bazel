@@ -1,0 +1,57 @@
+# buildifier: disable=module-docstring
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
+
+cc_import(
+    name = "libGL",
+    interface_library = "x86_64-linux-gnu/libGL.so",
+    system_provided = True,
+    visibility = ["//visibility:public"],
+    deps = [":libGL_headers", ":libGLdispatch", ":libGLX", ":libX11", ":libxcb", ":libXau", ":libXdmcp"],
+)
+
+cc_import(
+    name = "libGLdispatch",
+    interface_library = "x86_64-linux-gnu/libGLdispatch.so",
+    system_provided = True,
+)
+
+cc_import(
+    name = "libGLX",
+    interface_library = "x86_64-linux-gnu/libGLX.so",
+    system_provided = True,
+)
+
+cc_library(
+    name = "libGL_headers",
+    hdrs = glob(["include/GL/*.h", "include/KHR/*.h"]),
+    includes = ["include"],
+)
+
+cc_import(
+    name = "libX11",
+    interface_library = "x86_64-linux-gnu/libX11.so",
+    # Linking against the static library breaks xvfb for some reason.
+    # static_library = "x86_64-linux-gnu/libX11.a",
+    system_provided = True,
+)
+
+cc_import(
+    name = "libxcb",
+    interface_library = "x86_64-linux-gnu/libxcb.so",
+    static_library = "x86_64-linux-gnu/libxcb.a",
+    system_provided = True,
+)
+
+cc_import(
+    name = "libXau",
+    interface_library = "x86_64-linux-gnu/libXau.so",
+    static_library = "x86_64-linux-gnu/libXau.a",
+    system_provided = True,
+)
+
+cc_import(
+    name = "libXdmcp",
+    interface_library = "x86_64-linux-gnu/libXdmcp.so",
+    static_library = "x86_64-linux-gnu/libXdmcp.a",
+    system_provided = True,
+)

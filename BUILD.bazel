@@ -1,0 +1,68 @@
+load("@rules_cuda//cuda:defs.bzl", "cuda_library")
+load("@bazel_clang_format//:defs.bzl", "clang_format_update")
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "format_config",
+    srcs = [".clang-format"],
+    visibility = ["//visibility:public"],
+)
+
+clang_format_update(
+    name = "clang-format",
+    binary = "@llvm_16_0_toolchain//:clang-format",
+    config = ":format_config",
+)
+
+buildifier(
+    name = "buildifier.check",
+    lint_mode = "warn",
+    mode = "check",
+)
+
+buildifier(
+    name = "buildifier.fix",
+    lint_mode = "warn",
+    mode = "fix",
+)
+
+# TODO: won't be needed if https://github.com/bazel-contrib/rules_cuda/pull/99 is released
+genrule(
+    name = "cpp_to_cu",
+    srcs = ["hip_info.cpp"],
+    outs = ["hip_info.cpp.cu"],
+    cmd = "for i in $(SRCS); do cp $$i $(GENDIR)/$$i.cu; done",
+)
+
+cuda_library(
+    name = "hip_info_cuda",
+    srcs = ["hip_info.cpp.cu"],
+    hdrs = ["hip_info.hpp"],
+    tags = ["manual"],
+    deps = ["@hip"],
+)
+
+cc_library(
+    name = "hip_info",
+    srcs = ["hip_info.cpp"],
+    hdrs = ["hip_info.hpp"],
+    copts = [
+        # allow warnings from external code
+        "-Wno-old-style-cast",
+        "-Wno-double-promotion",
+        "-Wno-conversion",
+    ],
+    deps = ["@hip_cpu"],
+)
+
+cc_binary(
+    name = "print_hip_info",
+    srcs = ["print_hip_info.cpp"],
+    deps = select({
+        "@rules_cuda//cuda:is_enabled": [":hip_info_cuda"],
+        "//conditions:default": [":hip_info"],
+    }),
+)
