@@ -5,10 +5,8 @@ BAZEL_BOOTLIN_COMMIT = "22ee91e01bbbc0711444c49102e92010fc6d6c95"
 http_archive(
     name = "bazel_bootlin",
     sha256 = "3acd4ebca797fb05db00b1ebcac831fa920f503dd611c255c7f80cfad944182e",
-    strip_prefix = "bazel_bootlin-{commit}".format(commit = BAZEL_BOOTLIN_COMMIT),
-    url = "https://github.com/oliverlee/bazel_bootlin/archive/{commit}.tar.gz".format(
-        commit = BAZEL_BOOTLIN_COMMIT,
-    ),
+    strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
+    url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
 )
 
 load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
@@ -47,9 +45,7 @@ bootlin_toolchain(
     ],
 )
 
-register_toolchains(
-    "@{toolchain_name}//:toolchain".format(toolchain_name = "gcc_12_2_toolchain"),
-)
+register_toolchains("@gcc_12_2_toolchain//:toolchain")
 
 RULES_CUDA_VERSION = "v0.1.2"
 
