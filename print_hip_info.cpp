@@ -1,13 +1,14 @@
-#include <iostream>
 #include "hip_info.hpp"
+
+#include <iostream>
 
 auto main() -> int
 {
-    std::cout << '\n';
+  std::cout << '\n';
 
-    printCompilerInfo();
+  printCompilerInfo();
 
-    printDeviceProps();
+  printDeviceProps();
 
-    std::cout << '\n';
+  std::cout << '\n';
 }

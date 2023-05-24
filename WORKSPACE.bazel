@@ -131,3 +131,31 @@ cc_library(
     strip_prefix = "ut-%s" % BOOST_UT_VERSION,
     url = "https://github.com/boost-ext/ut/archive/%s.tar.gz" % BOOST_UT_VERSION,
 )
+
+BAZEL_TOOLCHAIN_VERSION = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
+
+http_archive(
+    name = "bazel_toolchain",
+    sha256 = "52b09a61b9a03f4e0994402243a03018a858da6a5774de898f99e344520e9a25",
+    strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
+    url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
+)
+
+load("@bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+
+bazel_toolchain_dependencies()
+
+llvm_toolchain(
+    name = "llvm_16_0_toolchain",
+    llvm_version = "16.0.0",
+)
+
+BAZEL_CLANG_FORMAT_VERSION = "d1de0469f12f740d4b4884f88a5eff6e0245096c"
+
+http_archive(
+    name = "bazel_clang_format",
+    sha256 = "a90b76e346c67d7cea9939e02b87214fee0d6ac6aecb0af8294820ee08b31c1a",
+    strip_prefix = "bazel_clang_format-%s" % BAZEL_CLANG_FORMAT_VERSION,
+    url = "https://github.com/oliverlee/bazel_clang_format/archive/%s.tar.gz" % BAZEL_CLANG_FORMAT_VERSION,
+)

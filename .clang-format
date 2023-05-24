@@ -1,0 +1,77 @@
+---
+BasedOnStyle: LLVM
+AlignAfterOpenBracket: Align
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: false
+BinPackParameters: false
+BreakAfterAttributes: Always
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterClass: true
+    AfterEnum: true
+    AfterFunction: true
+    AfterStruct: true
+    AfterUnion: true
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: true
+ColumnLimit: 80
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+IndentCaseLabels: true
+IndentWidth: 2
+InsertNewlineAtEOF: true
+Language: Cpp
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PenaltyIndentedWhitespace: 200
+PenaltyReturnTypeOnItsOwnLine: 1
+PointerAlignment: Left
+QualifierAlignment: Left
+ReflowComments: true
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+    AfterRequiresInClause: true
+    AfterRequiresInExpression: true
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard: Latest
+
+IncludeCategories:
+  - Regex:           '"test'
+    Priority:        2
+  - Regex:           '"fmt'
+    Priority:        3
+  - Regex:           'metal.hpp'
+    Priority:        3
+  - Regex:           'boost/ut.hpp'
+    Priority:        4
+  - Regex:           '<[[:alnum:|_].]+>'
+    Priority:        5
+  - Regex:           '".*"'
+    Priority:        1
+
+...
