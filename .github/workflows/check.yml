@@ -33,7 +33,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: "~/.cache/bazel"
-        key: bazel-clang-tidy
+        key: bazel-clang-format
 
     - name: install libtinfo5
       # clang format links against this
@@ -43,7 +43,7 @@ jobs:
         bazel \
           --bazelrc=.github/workflows/ci.bazelrc \
           build \
-          --config clang-format \
+          --config=clang-format \
           //...
 
   buildifier:
