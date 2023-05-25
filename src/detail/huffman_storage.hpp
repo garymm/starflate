@@ -4,7 +4,9 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <iterator>
 #include <span>
+#include <stdexcept>
 #include <vector>
 
 namespace gpu_deflate::detail {
@@ -18,11 +20,76 @@ struct data_tag
   explicit data_tag() = default;
 };
 
+/// A simplified implementation of `static_vector`
+///
+/// Provides a vector-like container with fixed capacity. Unlike the
+/// `static_vector` proposed in P0843, this type will default construct all
+/// elements in storage instead of using placement new.
+///
+template <class T, std::size_t Capacity>
+class static_vector : std::array<T, Capacity>
+{
+  using base_type = std::array<T, Capacity>;
+  typename base_type::size_type size_{};
+
+public:
+  using iterator = typename base_type::iterator;
+  using const_iterator = typename base_type::const_iterator;
+  using reference = typename base_type::reference;
+  using size_type = typename base_type::size_type;
+
+  static_vector() = default;
+
+  using base_type::begin;
+  using base_type::cbegin;
+  using base_type::data;
+  using base_type::front;
+
+  constexpr auto reserve(size_type new_cap) -> void
+  {
+    if (new_cap > Capacity) {
+      throw std::length_error{"`static_vector` capacity exceeded."};
+    }
+  }
+
+  template <class... Args>
+  constexpr auto emplace_back(Args&&... args) -> reference
+  {
+    reserve(size() + 1UZ);
+
+    ++size_;
+    return *std::prev(end()) = T{std::forward<Args>(args)...};
+  }
+
+  template <class... Args>
+  constexpr auto emplace(const_iterator pos, Args&&... args) -> iterator
+  {
+    const auto first = begin() + (pos - begin());
+    const auto mid = end();
+
+    emplace_back(std::forward<Args>(args)...);
+
+    const auto last = end();
+
+    std::rotate(first, mid, last);
+    return first;
+  }
+
+  constexpr auto size() const noexcept -> size_type { return size_; }
+
+  constexpr auto end() noexcept -> iterator { return begin() + size(); }
+  constexpr auto end() const noexcept -> const_iterator
+  {
+    return begin() + size();
+  }
+  constexpr auto cend() const noexcept -> const_iterator { return end(); }
+};
+
 template <class Node, std::size_t Extent>
 using huffman_storage_base_t = std::conditional_t<
     Extent == std::dynamic_extent,
     std::vector<Node>,
-    std::array<Node, Extent>>;
+    static_vector<Node, Extent>>;
 
 template <class Node, std::size_t Extent>
 class huffman_storage : huffman_storage_base_t<Node, Extent>
@@ -32,8 +99,8 @@ public:
   using symbol_type = typename Node::symbol_type;
 
   template <class R>
-    requires (Extent == std::dynamic_extent)
-  huffman_storage(frequency_tag, const R& frequencies, symbol_type eot)
+  constexpr huffman_storage(
+      frequency_tag, const R& frequencies, symbol_type eot)
       : base_type{}
   {
     base_type::reserve(frequencies.size() + 1UZ);  // +1 for EOT
@@ -48,27 +115,8 @@ public:
   }
 
   template <class R>
-    requires (Extent != std::dynamic_extent)
-  constexpr huffman_storage(
-      frequency_tag, const R& frequencies, symbol_type eot)
-      : base_type{{{eot, 1UZ}}}
-  {
-    assert(frequencies.size() + 1UZ == Extent);
-
-    auto& base = static_cast<base_type&>(*this);
-    auto i = std::size_t{};
-
-    for (auto [symbol, freq] : frequencies) {
-      assert(symbol != eot);
-      assert(freq);
-
-      base[++i] = {symbol, freq};
-    }
-  }
-
-  template <class R>
-    requires (Extent == std::dynamic_extent)
-  huffman_storage(data_tag, const R& data, symbol_type eot) : base_type{}
+  constexpr huffman_storage(data_tag, const R& data, symbol_type eot)
+      : base_type{}
   {
     base_type::emplace_back(eot, 1UZ);
 

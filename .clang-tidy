@@ -25,6 +25,9 @@ Checks: >
     # C-arrays necessary as function args,
     -modernize-avoid-c-arrays,
 
+    # use iterators as abstractions, not pointers,
+    -readability-qualified-auto,
+
     # false positive with spaceship operator,
     # https://reviews.llvm.org/D95714?id=320393,
     -modernize-use-nullptr,
