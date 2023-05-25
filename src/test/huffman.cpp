@@ -125,6 +125,17 @@ auto main() -> int
     }));
   };
 
+  test("code table can contain excess capacity with static extent") = [] {
+    const auto frequencies = std::array<std::pair<char, std::size_t>, 5>{
+        {{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+
+    const auto t1 = gpu_deflate::code_table<char, 256>{frequencies};
+    const auto t2 = gpu_deflate::code_table{frequencies};
+
+    expect(sizeof(t1) > sizeof(t2));
+    expect(std::ranges::equal(t1, t2));
+  };
+
   test("code table constructible in constant expression context") = [] {
     static constexpr auto frequencies = std::array<
         std::pair<char, std::size_t>,
@@ -160,6 +171,37 @@ auto main() -> int
     const auto t1 = gpu_deflate::code_table{frequencies, eot};
     const auto t2 = gpu_deflate::code_table{data, eot};
 
+    expect(std::ranges::equal(t1, t2));
+  };
+
+  test("code table constructible from symbol sequence in constant expression "
+       "context") = [] {
+    static constexpr auto frequencies = std::array<
+        std::pair<char, std::size_t>,
+        5>{{{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+
+    constexpr auto count = std::accumulate(
+        frequencies.cbegin(), frequencies.cend(), 0UZ, [](auto acc, auto arg) {
+          return acc + std::get<std::size_t>(arg);
+        });
+
+    static constexpr auto data = [] {
+      auto d = std::array<char, count>{};
+
+      auto it = d.begin();
+      for (auto [s, n] : frequencies) {
+        it = std::fill_n(it, n, s);
+      }
+
+      return d;
+    }();
+
+    constexpr auto eot = char{4};
+
+    static constexpr auto t1 = gpu_deflate::code_table{frequencies, eot};
+    static constexpr auto t2 = gpu_deflate::code_table<char, 256>{data, eot};
+
+    expect(constant<sizeof(t1) < sizeof(t2)>);
     expect(std::ranges::equal(t1, t2));
   };
 }

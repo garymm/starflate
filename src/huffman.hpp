@@ -345,12 +345,12 @@ public:
 
   template <std::ranges::input_range R>
     requires std::convertible_to<std::ranges::range_reference_t<R>, symbol_type>
-  explicit code_table(const R& data) : code_table{data, {}}
+  constexpr explicit code_table(const R& data) : code_table{data, {}}
   {}
 
   template <std::ranges::input_range R>
     requires std::convertible_to<std::ranges::range_reference_t<R>, symbol_type>
-  explicit code_table(const R& data, symbol_type eot)
+  constexpr explicit code_table(const R& data, symbol_type eot)
       : table_{detail::data_tag{}, data, eot}
   {
     construct_table();
