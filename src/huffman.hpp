@@ -1,5 +1,7 @@
 #pragma once
 
+#include "detail/huffman_storage.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <compare>
@@ -11,8 +13,8 @@
 #include <iterator>
 #include <numeric>
 #include <ranges>
+#include <span>
 #include <tuple>
-#include <vector>
 
 namespace gpu_deflate {
 
@@ -38,10 +40,16 @@ struct code_type
 
 /// Huffman code table
 /// @tparam Symbol symbol type
+/// @tparam Extent upper bound for alphabet size
 ///
-/// Determines the Huffman code for a collection of symbols
+/// Determines the Huffman code for a collection of symbols.
 ///
-template <std::regular Symbol>
+/// If `Extent` is `std::dynamic_extent`, the maximum alphabet size is
+/// undetermined and `std::vector` is used to store the Huffman tree. Otherwise,
+/// `std::array` is used to store the Huffman tree, with the size determined by
+/// `Extent`.
+///
+template <std::regular Symbol, std::size_t Extent = std::dynamic_extent>
   requires std::totally_ordered<Symbol>
 class code_table
 {
@@ -54,6 +62,8 @@ public:
   ///
   struct code_point
   {
+    using symbol_type = Symbol;
+
     symbol_type symbol{};
     std::uint8_t bitsize{};
     std::size_t value{};
@@ -126,6 +136,8 @@ private:
     std::size_t node_size_{1UZ};
 
   public:
+    using symbol_type = typename code_point::symbol_type;
+
     /// Construct a leaf node for a symbol and its frequency
     ///
     constexpr intrusive_node(symbol_type sym, std::size_t freq)
@@ -220,7 +232,7 @@ private:
     }
   };
 
-  std::vector<intrusive_node> table_{};
+  detail::huffman_storage<intrusive_node, Extent> table_;
 
   auto base_range() const
   {
@@ -261,23 +273,13 @@ public:
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::tuple<symbol_type, std::size_t>>
-  code_table(const R& frequencies, symbol_type eot)
+  code_table(const R& frequencies, symbol_type eot) : table_{frequencies, eot}
   {
     const auto total_freq = std::accumulate(
         std::cbegin(frequencies),
         std::cend(frequencies),
         1UZ,  // for EOT which we add later.
         [](auto acc, auto kv) { return acc + kv.second; });
-
-    table_.reserve(frequencies.size() + 1UZ);  // +1 for EOT
-    table_.emplace_back(eot, 1UZ);
-
-    for (auto [symbol, freq] : frequencies) {
-      assert(symbol != eot);
-      assert(freq);
-
-      table_.emplace_back(symbol, freq);
-    }
 
     std::ranges::sort(table_);
 

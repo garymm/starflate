@@ -11,6 +11,9 @@ cc_test(
 
 cc_library(
     name = "huffman",
+    srcs = [
+        "detail/huffman_storage.hpp",
+    ],
     hdrs = ["huffman.hpp"],
 )
 
