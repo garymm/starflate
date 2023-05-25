@@ -140,4 +140,26 @@ auto main() -> int
     static_assert(CodePoint{'q', 4UZ, 1UZ} == table.begin()[2]);
     static_assert(CodePoint{'x', 5UZ, 1UZ} == table.begin()[1]);
   };
+
+  test("code table constructible from symbol sequence") = [] {
+    const auto frequencies = std::vector<std::pair<char, std::size_t>>{
+        {'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}};
+
+    const auto data = [&frequencies] {
+      auto d = std::vector<char>{};
+
+      for (auto [s, n] : frequencies) {
+        d.insert(d.cend(), n, s);
+      }
+
+      return d;
+    }();
+
+    constexpr auto eot = char{4};
+
+    const auto t1 = gpu_deflate::code_table{frequencies, eot};
+    const auto t2 = gpu_deflate::code_table{data, eot};
+
+    expect(std::ranges::equal(t1, t2));
+  };
 }

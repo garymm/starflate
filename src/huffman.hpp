@@ -258,6 +258,34 @@ class code_table
     return first;
   }
 
+  constexpr auto construct_table() -> void
+  {
+    std::ranges::sort(table_);
+
+    assert(
+        std::ranges::unique(
+            table_,
+            [](auto& x, auto& y) { return x.base().symbol == y.base().symbol; })
+            .empty() and
+        "`frequencies` cannot contain duplicate symbols");
+
+    while (table_.front().node_size() != table_.size()) {
+      table_.front().join_with_next();
+
+      const auto last = table_.data() + table_.size();
+      const auto has_higher_freq =
+          [f = table_.front().frequency()](const auto& n) {
+            return n.frequency() > f;
+          };
+
+      auto lower = table_.front().next();
+      auto upper = find_node_if(lower, last, has_higher_freq);
+
+      // re-sort after creating a new internal node
+      std::rotate(&table_.front(), lower, upper);
+    }
+  }
+
 public:
   /// Code point type
   ///
@@ -290,7 +318,7 @@ public:
         std::ranges::range_value_t<R>,
         std::tuple<symbol_type, std::size_t>>
   constexpr code_table(const R& frequencies, symbol_type eot)
-      : table_{frequencies, eot}
+      : table_{detail::frequency_tag{}, frequencies, eot}
   {
     const auto total_freq = std::accumulate(
         std::cbegin(frequencies),
@@ -298,34 +326,34 @@ public:
         1UZ,  // for EOT which we add later.
         [](auto acc, auto kv) { return acc + kv.second; });
 
-    std::ranges::sort(table_);
-
-    assert(
-        std::ranges::unique(
-            table_,
-            [](auto& x, auto& y) { return x.base().symbol == y.base().symbol; })
-            .empty() and
-        "`frequencies` cannot contain duplicate symbols");
-
-    while (table_.front().node_size() != table_.size()) {
-      table_.front().join_with_next();
-
-      const auto last = table_.data() + table_.size();
-      const auto has_higher_freq =
-          [f = table_.front().frequency()](const auto& n) {
-            return n.frequency() > f;
-          };
-
-      auto lower = table_.front().next();
-      auto upper = find_node_if(lower, last, has_higher_freq);
-
-      // re-sort after creating a new internal node
-      std::rotate(&table_.front(), lower, upper);
-    }
+    construct_table();
 
     assert(total_freq == table_.front().frequency());
     // make sure we don't get a warning about unused variable in release mode
     (void)total_freq;
+  }
+
+  /// @}
+
+  /// Constructs a `code_table` from a sequence of symbols
+  /// @tparam R input-range of symbols
+  /// @param data input-range of symbols
+  /// @param eot end-of-transmission symbol
+  /// @pre `eot` is not a symbol in `data`
+  ///
+  /// @{
+
+  template <std::ranges::input_range R>
+    requires std::convertible_to<std::ranges::range_reference_t<R>, symbol_type>
+  explicit code_table(const R& data) : code_table{data, {}}
+  {}
+
+  template <std::ranges::input_range R>
+    requires std::convertible_to<std::ranges::range_reference_t<R>, symbol_type>
+  explicit code_table(const R& data, symbol_type eot)
+      : table_{detail::data_tag{}, data, eot}
+  {
+    construct_table();
   }
 
   /// @}
@@ -365,6 +393,18 @@ template <class T>
 concept tuple_like = requires { typename std::tuple_size<T>::type; };
 
 template <class T>
+constexpr auto tuple_size_v()
+{
+  return 0UZ;
+};
+
+template <tuple_like T>
+constexpr auto tuple_size_v()
+{
+  return std::tuple_size_v<T>;
+};
+
+template <class T>
 constexpr auto extent_v()
 {
   return std::dynamic_extent;
@@ -379,17 +419,21 @@ constexpr auto extent_v()
 }  // namespace detail
 
 template <class R>
-  requires (std::tuple_size_v<std::ranges::range_value_t<R>> == 2)
+  requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2)
 code_table(const R&) -> code_table<
     std::tuple_element_t<0, std::ranges::range_value_t<R>>,
     detail::extent_v<R>()>;
 
 template <class R, class S>
   requires (
-      std::tuple_size_v<std::ranges::range_value_t<R>> == 2 and
+      detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2 and
       std::convertible_to<
           std::tuple_element_t<0, std::ranges::range_value_t<R>>,
           S>)
 code_table(const R&, S) -> code_table<S, detail::extent_v<R>()>;
+
+template <class R, class S>
+  requires std::convertible_to<std::ranges::range_reference_t<R>, S>
+code_table(const R&, S) -> code_table<S>;
 
 }  // namespace gpu_deflate

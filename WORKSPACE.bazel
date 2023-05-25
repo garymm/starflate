@@ -22,7 +22,6 @@ COMMON_CXX_WARNINGS = [
     "-Wextra",
     "-Wpedantic",
     "-Wconversion",
-    "-Wshadow",
     "-Wnon-virtual-dtor",
     "-Wold-style-cast",
     "-Wcast-align",
@@ -48,6 +47,7 @@ bootlin_toolchain(
         "-Wduplicated-branches",
         "-Wlogical-op",
         "-Wuseless-cast",
+        "-Wshadow=compatible-local",  # Equivalent to -Wshadow on llvm. GCC default is stupid.
     ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
 )
 
@@ -71,6 +71,7 @@ llvm_toolchain(
         "": [
             "-stdlib=libc++",
             "-std=c++2b",
+            "-Wshadow",
         ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
     },
     # Link UBSan C++ runtime libraries if the `ubsan` feature is enabled

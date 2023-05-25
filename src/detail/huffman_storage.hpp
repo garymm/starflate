@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -7,6 +8,15 @@
 #include <vector>
 
 namespace gpu_deflate::detail {
+
+struct frequency_tag
+{
+  explicit frequency_tag() = default;
+};
+struct data_tag
+{
+  explicit data_tag() = default;
+};
 
 template <class Node, std::size_t Extent>
 using huffman_storage_base_t = std::conditional_t<
@@ -23,7 +33,8 @@ public:
 
   template <class R>
     requires (Extent == std::dynamic_extent)
-  huffman_storage(const R& frequencies, symbol_type eot) : base_type{}
+  huffman_storage(frequency_tag, const R& frequencies, symbol_type eot)
+      : base_type{}
   {
     base_type::reserve(frequencies.size() + 1UZ);  // +1 for EOT
     base_type::emplace_back(eot, 1UZ);
@@ -38,7 +49,8 @@ public:
 
   template <class R>
     requires (Extent != std::dynamic_extent)
-  constexpr huffman_storage(const R& frequencies, symbol_type eot)
+  constexpr huffman_storage(
+      frequency_tag, const R& frequencies, symbol_type eot)
       : base_type{{{eot, 1UZ}}}
   {
     assert(frequencies.size() + 1UZ == Extent);
@@ -51,6 +63,27 @@ public:
       assert(freq);
 
       base[++i] = {symbol, freq};
+    }
+  }
+
+  template <class R>
+    requires (Extent == std::dynamic_extent)
+  huffman_storage(data_tag, const R& data, symbol_type eot) : base_type{}
+  {
+    base_type::emplace_back(eot, 1UZ);
+
+    for (auto s : data) {
+      assert(s != eot);
+
+      const auto lower = std::ranges::lower_bound(*this, s, {}, [](auto& node) {
+        return node.base().symbol;
+      });
+
+      if (lower != base_type::cend() and lower->base().symbol == s) {
+        *lower = {s, lower->frequency() + 1UZ};
+      } else {
+        base_type::emplace(lower, s, 1UZ);
+      }
     }
   }
 
