@@ -3,7 +3,9 @@
 #include <boost/ut.hpp>
 
 #include <array>
+#include <concepts>
 #include <cstddef>
+#include <ranges>
 #include <sstream>
 #include <string_view>
 #include <utility>
@@ -73,12 +75,53 @@ auto main() -> int
 
     const auto table = gpu_deflate::code_table{frequencies};
 
-    using CodePoint = decltype(table)::code_point;
+    using CodePoint = decltype(table)::code_point_type;
 
     expect(CodePoint{"FR", 1UZ, 1UZ} == table.begin()[5]);
     expect(CodePoint{"IT", 2UZ, 1UZ} == table.begin()[4]);
     expect(CodePoint{"UK", 3UZ, 1UZ} == table.begin()[3]);
     expect(CodePoint{"DE", 4UZ, 1UZ} == table.begin()[2]);
     expect(CodePoint{"BE", 5UZ, 1UZ} == table.begin()[1]);
+  };
+
+  test("code table can be statically sized") = [] {
+    const auto frequencies = std::vector<std::pair<char, std::size_t>>{
+        {'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}};
+
+    constexpr auto eot = char{4};
+
+    const auto t1 = gpu_deflate::code_table<char, 6>{frequencies, eot};
+    const auto t2 =
+        gpu_deflate::code_table<char, std::dynamic_extent>{frequencies, eot};
+
+    expect(std::ranges::equal(t1, t2));
+  };
+
+  test("code table can deduce static extent") = [] {
+    const auto frequencies = std::array<std::pair<char, std::size_t>, 5>{
+        {{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+
+    constexpr auto eot = char{4};
+
+    const auto t1 = gpu_deflate::code_table<char, 6>{frequencies, eot};
+    const auto t2 = gpu_deflate::code_table{frequencies, eot};
+
+    expect(std::ranges::equal(t1, t2));
+    static_assert(std::same_as<decltype(t1), decltype(t2)>);
+  };
+
+  test("code table can deduce symbol type and static extent") = [] {
+    const auto frequencies = std::array<std::pair<char, std::size_t>, 5>{
+        {{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+
+    const auto t1 = gpu_deflate::code_table{frequencies};
+    (void)t1;
+  };
+
+  test("code table rejects duplicate symbols") = [] {
+    expect(aborts([] {
+      gpu_deflate::code_table{
+          std::vector<std::pair<char, std::size_t>>{{'e', 100}, {'e', 10}}};
+    }));
   };
 }
