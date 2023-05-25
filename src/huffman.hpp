@@ -44,6 +44,11 @@ struct code_type
 ///
 /// Determines the Huffman code for a collection of symbols.
 ///
+/// If `Extent` is `std::dynamic_extent`, the maximum alphabet size is
+/// undetermined and `std::vector` is used to store the Huffman tree. Otherwise,
+/// `std::array` is used to store the Huffman tree, with the size determined by
+/// `Extent`.
+///
 template <std::regular Symbol, std::size_t Extent = std::dynamic_extent>
   requires std::totally_ordered<Symbol>
 class code_table
