@@ -124,4 +124,20 @@ auto main() -> int
           std::vector<std::pair<char, std::size_t>>{{'e', 100}, {'e', 10}}};
     }));
   };
+
+  test("code table constructible in constant expression context") = [] {
+    static constexpr auto frequencies = std::array<
+        std::pair<char, std::size_t>,
+        5>{{{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+
+    static constexpr auto table = gpu_deflate::code_table{frequencies};
+
+    using CodePoint = decltype(table)::code_point_type;
+
+    static_assert(CodePoint{'e', 1UZ, 1UZ} == table.begin()[5]);
+    static_assert(CodePoint{'i', 2UZ, 1UZ} == table.begin()[4]);
+    static_assert(CodePoint{'n', 3UZ, 1UZ} == table.begin()[3]);
+    static_assert(CodePoint{'q', 4UZ, 1UZ} == table.begin()[2]);
+    static_assert(CodePoint{'x', 5UZ, 1UZ} == table.begin()[1]);
+  };
 }
