@@ -231,14 +231,23 @@ class code_table
 
   detail::huffman_storage<intrusive_node, Extent> table_;
 
-  auto base_range() const
-  {
-    return std::views::transform(table_, [](const auto& n) -> auto& {
-      return n.base();
-    });
-  }
+  // Create a base view member to prevent member call on the temporary created
+  // by views::transform
+  //
+  // @{
 
-  static auto find_node_if(auto first, auto last, auto pred)
+  static constexpr auto as_const_base(const intrusive_node& node) -> const
+      typename intrusive_node::code_point_type&
+  {
+    return node.base();
+  }
+  using base_view_type = decltype(std::views::transform(
+      std::declval<decltype((table_))>(), &as_const_base));
+  base_view_type base_view_{std::views::transform(table_, &as_const_base)};
+
+  // @}
+
+  constexpr static auto find_node_if(auto first, auto last, auto pred)
   {
     for (; first != last; first = first->next()) {
       if (pred(*first)) {
@@ -272,14 +281,16 @@ public:
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::tuple<symbol_type, std::size_t>>
-  explicit code_table(const R& frequencies) : code_table{frequencies, {}}
+  constexpr explicit code_table(const R& frequencies)
+      : code_table{frequencies, {}}
   {}
 
   template <std::ranges::sized_range R>
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::tuple<symbol_type, std::size_t>>
-  code_table(const R& frequencies, symbol_type eot) : table_{frequencies, eot}
+  constexpr code_table(const R& frequencies, symbol_type eot)
+      : table_{frequencies, eot}
   {
     const auto total_freq = std::accumulate(
         std::cbegin(frequencies),
@@ -324,15 +335,15 @@ public:
   /// @{
 
   [[nodiscard]]
-  auto begin() const
+  constexpr auto begin() const
   {
-    return base_range().begin();
+    return base_view_.begin();
   }
 
   [[nodiscard]]
-  auto end() const
+  constexpr auto end() const
   {
-    return base_range().end();
+    return base_view_.end();
   }
 
   /// @}

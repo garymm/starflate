@@ -38,7 +38,7 @@ public:
 
   template <class R>
     requires (Extent != std::dynamic_extent)
-  huffman_storage(const R& frequencies, symbol_type eot)
+  constexpr huffman_storage(const R& frequencies, symbol_type eot)
       : base_type{{{eot, 1UZ}}}
   {
     assert(frequencies.size() + 1UZ == Extent);
