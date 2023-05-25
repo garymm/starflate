@@ -38,6 +38,50 @@ struct code_type
   }
 };
 
+/// Internal code table element type
+///
+template <std::regular Symbol>
+  requires std::totally_ordered<Symbol>
+struct code_point
+{
+  using symbol_type = Symbol;
+
+  symbol_type symbol{};
+  std::uint8_t bitsize{};
+  std::size_t value{};
+
+  /// Left pad the code of `*this` with a 0
+  ///
+  constexpr auto pad_with_0() -> void { ++bitsize; }
+
+  /// Left pad the code of `*this` with a 1
+  ///
+  constexpr auto pad_with_1() -> void { value += (1UZ << bitsize++); }
+
+  /// Returns the encoding for `*this`
+  ///
+  [[nodiscard]]
+  constexpr auto code() const -> code_type
+  {
+    return {bitsize, value};
+  }
+
+  friend auto
+  operator<<(std::ostream& os, const code_point& point) -> std::ostream&
+  {
+    os << +point.bitsize        //
+       << "\t" << point.code()  //
+       << "\t" << point.value   //
+       << "\t`" << point.symbol << '`';
+
+    return os;
+  }
+
+  [[nodiscard]]
+  friend auto
+  operator<=>(const code_point&, const code_point&) = default;
+};
+
 /// Huffman code table
 /// @tparam Symbol symbol type
 /// @tparam Extent upper bound for alphabet size
@@ -48,54 +92,6 @@ template <std::regular Symbol, std::size_t Extent = std::dynamic_extent>
   requires std::totally_ordered<Symbol>
 class code_table
 {
-public:
-  /// Symbol type
-  ///
-  using symbol_type = Symbol;
-
-  /// Internal code table element type
-  ///
-  struct code_point
-  {
-    using symbol_type = Symbol;
-
-    symbol_type symbol{};
-    std::uint8_t bitsize{};
-    std::size_t value{};
-
-    /// Left pad the code of `*this` with a 0
-    ///
-    constexpr auto pad_with_0() -> void { ++bitsize; }
-
-    /// Left pad the code of `*this` with a 1
-    ///
-    constexpr auto pad_with_1() -> void { value += (1UZ << bitsize++); }
-
-    /// Returns the encoding for `*this`
-    ///
-    [[nodiscard]]
-    constexpr auto code() const -> code_type
-    {
-      return {bitsize, value};
-    }
-
-    friend auto
-    operator<<(std::ostream& os, const code_point& point) -> std::ostream&
-    {
-      os << +point.bitsize        //
-         << "\t" << point.code()  //
-         << "\t" << point.value   //
-         << "\t`" << point.symbol << '`';
-
-      return os;
-    }
-
-    [[nodiscard]]
-    friend auto
-    operator<=>(const code_point&, const code_point&) = default;
-  };
-
-private:
   /// A node of a Huffman tree
   ///
   /// This class is used to build a Huffman tree in-place and avoids allocation
@@ -125,18 +121,23 @@ private:
   /// be obtained by iterating over the `code_tree`s elements, which are
   /// `code_point`s.
   ///
-  class intrusive_node : code_point
+  class intrusive_node : code_point<Symbol>
   {
     std::size_t frequency_{};
-    std::size_t node_size_{1UZ};
+    std::size_t node_size_{};
 
   public:
-    using symbol_type = typename code_point::symbol_type;
+    using code_point_type = code_point<Symbol>;
+    using symbol_type = typename code_point_type::symbol_type;
+
+    /// Construct an "empty" intrusive node
+    ///
+    intrusive_node() = default;
 
     /// Construct a leaf node for a symbol and its frequency
     ///
     constexpr intrusive_node(symbol_type sym, std::size_t freq)
-        : code_point{sym}, frequency_{freq}
+        : code_point_type{sym}, frequency_{freq}, node_size_{1UZ}
     {}
 
     constexpr auto frequency() const { return frequency_; }
@@ -147,13 +148,13 @@ private:
     ///
     /// @{
 
-    constexpr auto base() -> code_point&
+    constexpr auto base() -> code_point_type&
     {
-      return static_cast<code_point&>(*this);
+      return static_cast<code_point_type&>(*this);
     }
-    constexpr auto base() const -> const code_point&
+    constexpr auto base() const -> const code_point_type&
     {
-      return static_cast<const code_point&>(*this);
+      return static_cast<const code_point_type&>(*this);
     }
 
     /// @}
@@ -198,8 +199,9 @@ private:
       const auto on_base = [](auto f) {
         return [f](intrusive_node& n) { std::invoke(f, n.base()); };
       };
-      std::for_each(this, next(), on_base(&code_point::pad_with_0));
-      std::for_each(next(), next()->next(), on_base(&code_point::pad_with_1));
+      std::for_each(this, next(), on_base(&code_point_type::pad_with_0));
+      std::for_each(
+          next(), next()->next(), on_base(&code_point_type::pad_with_1));
 
       const auto& n = *next();
       frequency_ += n.frequency();
@@ -248,12 +250,21 @@ private:
   }
 
 public:
+  /// Code point type
+  ///
+  using code_point_type = code_point<Symbol>;
+
+  /// Symbol type
+  ///
+  using symbol_type = typename code_point_type::symbol_type;
+
   /// Constructs a `code_table` from a symbol-frequency mapping
   /// @tparam R sized-range of symbol-frequency 2-tuples
   /// @param frequencies mapping with symbol frequencies
   /// @param eot end-of-transmission symbol
   /// @pre `eot` is not a symbol in `frequencies`
   /// @pre frequency for a given symbol is positive
+  /// @pre `frequencies` does not contain duplicate symbol values
   ///
   /// @{
 
@@ -277,6 +288,13 @@ public:
         [](auto acc, auto kv) { return acc + kv.second; });
 
     std::ranges::sort(table_);
+
+    assert(
+        std::ranges::unique(
+            table_,
+            [](auto& x, auto& y) { return x.base().symbol == y.base().symbol; })
+            .empty() and
+        "`frequencies` cannot contain duplicate symbols");
 
     while (table_.front().node_size() != table_.size()) {
       table_.front().join_with_next();
@@ -330,9 +348,37 @@ public:
   }
 };
 
+namespace detail {
+
+template <class T>
+concept tuple_like = requires { typename std::tuple_size<T>::type; };
+
+template <class T>
+constexpr auto extent_v()
+{
+  return std::dynamic_extent;
+}
+
+template <tuple_like T>
+constexpr auto extent_v()
+{
+  return std::tuple_size_v<T> + 1UZ;  // +1 for EOT
+}
+
+}  // namespace detail
+
 template <class R>
   requires (std::tuple_size_v<std::ranges::range_value_t<R>> == 2)
-code_table(const R&)
-    -> code_table<std::tuple_element_t<0, std::ranges::range_value_t<R>>>;
+code_table(const R&) -> code_table<
+    std::tuple_element_t<0, std::ranges::range_value_t<R>>,
+    detail::extent_v<R>()>;
+
+template <class R, class S>
+  requires (
+      std::tuple_size_v<std::ranges::range_value_t<R>> == 2 and
+      std::convertible_to<
+          std::tuple_element_t<0, std::ranges::range_value_t<R>>,
+          S>)
+code_table(const R&, S) -> code_table<S, detail::extent_v<R>()>;
 
 }  // namespace gpu_deflate
