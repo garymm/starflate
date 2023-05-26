@@ -1,11 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-# Verify that the selected C++ toolchain provides std::execution
-cc_binary(
-    name = "std_execution_available",
-    srcs = ["std_execution_available.cpp"],
-)
-
 # Verify that the selected C++ toolchain provides std::expected
 cc_binary(
     name = "std_expected_available",
