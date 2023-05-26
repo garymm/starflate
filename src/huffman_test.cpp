@@ -25,7 +25,18 @@ public:
     return os;
   }
 
-  friend auto operator<=>(Country, Country) = default;
+  friend constexpr auto operator<=>(Country lhs, Country rhs)
+  {
+    if (const auto cmp = lhs.code_[0] <=> rhs.code_[0]; cmp != 0) {
+      return cmp;
+    }
+    return lhs.code_[1] <=> rhs.code_[1];
+  }
+
+  friend constexpr auto operator==(Country lhs, Country rhs)
+  {
+    return lhs <=> rhs == 0;
+  }
 };
 
 auto main() -> int
@@ -40,17 +51,17 @@ auto main() -> int
 
     constexpr auto table =
         "Bits\tCode\tValue\tSymbol\n"
-        "5\t11111\t31\t`\4`\n"
-        "5\t11110\t30\t`x`\n"
-        "4\t1110\t14\t`q`\n"
-        "3\t110\t6\t`n`\n"
-        "2\t10\t2\t`i`\n"
-        "1\t0\t0\t`e`\n";
+        "1\t1\t1\t`e`\n"
+        "2\t01\t1\t`i`\n"
+        "3\t001\t1\t`n`\n"
+        "4\t0001\t1\t`q`\n"
+        "5\t00001\t1\t`x`\n"
+        "5\t00000\t0\t`\4`\n";
 
     auto ss = std::stringstream{};
     ss << gpu_deflate::code_table{frequencies, eot};
 
-    expect(table == ss.view());
+    expect(table == ss.str());
   };
 
   test("code tables allow user defined types as symbols") = [] {
@@ -61,10 +72,10 @@ auto main() -> int
 
     using CodePoint = decltype(table)::code_point;
 
-    expect(CodePoint{"FR", 1UZ, 0UZ} == table.begin()[0]);
-    expect(CodePoint{"IT", 2UZ, 2UZ} == table.begin()[1]);
-    expect(CodePoint{"UK", 3UZ, 6UZ} == table.begin()[2]);
-    expect(CodePoint{"DE", 4UZ, 14UZ} == table.begin()[3]);
-    expect(CodePoint{"BE", 5UZ, 30UZ} == table.begin()[4]);
+    expect(CodePoint{"FR", 1UZ, 1UZ} == table.begin()[5]);
+    expect(CodePoint{"IT", 2UZ, 1UZ} == table.begin()[4]);
+    expect(CodePoint{"UK", 3UZ, 1UZ} == table.begin()[3]);
+    expect(CodePoint{"DE", 4UZ, 1UZ} == table.begin()[2]);
+    expect(CodePoint{"BE", 5UZ, 1UZ} == table.begin()[1]);
   };
 }

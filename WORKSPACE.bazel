@@ -11,6 +11,30 @@ http_archive(
 
 load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
 
+COMMON_CXX_FLAGS = [
+    "-march=native",
+    "-fdiagnostics-color=always",
+]
+
+COMMON_CXX_WARNINGS = [
+    "-Werror",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Wconversion",
+    "-Wshadow",
+    "-Wnon-virtual-dtor",
+    "-Wold-style-cast",
+    "-Wcast-align",
+    "-Wunused",
+    "-Woverloaded-virtual",
+    "-Wmisleading-indentation",
+    "-Wnull-dereference",
+    "-Wdouble-promotion",
+    "-Wformat=2",
+    "-Wimplicit-fallthrough",
+]
+
 # for mapping from buildroot version to gcc version
 # see https://toolchains.bootlin.com/releases_x86-64.html
 #
@@ -20,50 +44,11 @@ bootlin_toolchain(
     buildroot_version = "2022.08-1_bleeding",
     extra_cxxflags = [
         "-std=c++23",
-        "-march=native",
-        "-fdiagnostics-color=always",
-        "-Werror",
-        "-Wall",
-        "-Wextra",
-        "-Wpedantic",
-        "-Wconversion",
-        "-Wshadow",
-        "-Wnon-virtual-dtor",
-        "-Wold-style-cast",
-        "-Wcast-align",
-        "-Wunused",
-        "-Woverloaded-virtual",
-        "-Wmisleading-indentation",
-        "-Wnull-dereference",
-        "-Wdouble-promotion",
-        "-Wformat=2",
-        "-Wimplicit-fallthrough",
         "-Wduplicated-cond",
         "-Wduplicated-branches",
         "-Wlogical-op",
         "-Wuseless-cast",
-    ],
-)
-
-register_toolchains("@gcc_12_2_toolchain//:toolchain")
-
-BOOST_UT_VERSION = "e53a47d37bc594e80bd5f1b8dc1ade8dce4429d3"
-
-http_archive(
-    name = "boost_ut",
-    build_file_content = """
-load("@rules_cc//cc:defs.bzl", "cc_library")
-
-cc_library(
-    name = "boost_ut",
-    hdrs = ["include/boost/ut.hpp"],
-    includes = ["include"],
-    visibility = ["//visibility:public"],
-)
-""",
-    sha256 = "abc90fa389a47504d06a88a56ddc9e580cf2654173bd14d211db714bb111b923",
-    strip_prefix = "ut-%s" % BOOST_UT_VERSION,
-    url = "https://github.com/boost-ext/ut/archive/%s.tar.gz" % BOOST_UT_VERSION,
+    ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
 )
 
 BAZEL_TOOLCHAIN_VERSION = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
@@ -82,7 +67,48 @@ bazel_toolchain_dependencies()
 
 llvm_toolchain(
     name = "llvm_16_0_toolchain",
+    cxx_flags = {
+        "": [
+            "-stdlib=libc++",
+            "-std=c++2b",
+        ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
+    },
+    # Link UBSan C++ runtime libraries if the `ubsan` feature is enabled
+    # https://github.com/bazelbuild/bazel/issues/12797#issuecomment-980641064
+    # use `link_libs` to prevent overriding default `link_flags`
+    # https://github.com/grailbio/bazel-toolchain/blob/ceeedcc4464322e05fe5b8df3749cc02273ee083/toolchain/cc_toolchain_config.bzl#L148-L150
+    link_libs = {
+        "": ["--driver-mode=g++"],
+    },
     llvm_version = "16.0.0",
+)
+
+# register llvm first, it has better error messages
+load("@llvm_16_0_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+llvm_register_toolchains()
+
+register_toolchains(
+    "@gcc_12_2_toolchain//:toolchain",
+)
+
+BOOST_UT_VERSION = "e53a47d37bc594e80bd5f1b8dc1ade8dce4429d3"
+
+http_archive(
+    name = "boost_ut",
+    build_file_content = """
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "boost_ut",
+    hdrs = ["include/boost/ut.hpp"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "abc90fa389a47504d06a88a56ddc9e580cf2654173bd14d211db714bb111b923",
+    strip_prefix = "ut-%s" % BOOST_UT_VERSION,
+    url = "https://github.com/boost-ext/ut/archive/%s.tar.gz" % BOOST_UT_VERSION,
 )
 
 BAZEL_CLANG_FORMAT_VERSION = "f4198b68887699a4d1862e44458e4969ad69fc8a"
