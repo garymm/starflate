@@ -1,0 +1,51 @@
+UseColor: true
+
+Checks: >
+    bugprone-*,
+    clang-analyzer-cplusplus*,
+    concurrency-*,
+    cppcoreguidelines-*,
+    misc-*,
+    modernize-*,
+    performance-*,
+    readability-*,
+
+    # Bazel does this for determinism,
+    -clang-diagnostic-builtin-macro-redefined,
+
+    # suppress due to assert,
+    -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+
+    # short names are fine for short lifetimes,
+    -readability-identifier-length,
+
+    # allow unused variables to be unnamed,
+    -readability-named-parameter,
+
+    # C-arrays necessary as function args,
+    -modernize-avoid-c-arrays,
+
+    # false positive with spaceship operator,
+    # https://reviews.llvm.org/D95714?id=320393,
+    -modernize-use-nullptr,
+
+    # disable common aliases,
+    -cppcoreguidelines-avoid-c-arrays,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-c-copy-assignment-signature,
+    -cppcoreguidelines-explicit-virtual-functions,
+    -cppcoreguidelines-non-private-member-variables-in-classes,
+
+CheckOptions:
+    - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+      value: 1
+
+HeaderFilterRegex: '.*'
+
+# clang-diagnostic-builtin-macro-redefined must be manually suppressed here
+# https://github.com/erenon/bazel_clang_tidy/issues/29
+# https://github.com/llvm/llvm-project/issues/56709
+#
+WarningsAsErrors: '*,-clang-diagnostic-builtin-macro-redefined'
+
+

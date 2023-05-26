@@ -1,4 +1,4 @@
-#include "huffman.hpp"
+#include "src/huffman.hpp"
 
 #include <boost/ut.hpp>
 
@@ -15,6 +15,9 @@ class Country
 
 public:
   Country() = default;
+
+  // allow implicit conversions to simplify construction of test data
+  // NOLINTNEXTLINE(google-explicit-constructor)
   Country(const char (&code)[3]) : code_{code[0], code[1]} {}
 
   friend auto operator<<(std::ostream& os, Country c) -> std::ostream&

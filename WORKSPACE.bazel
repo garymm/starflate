@@ -120,6 +120,15 @@ http_archive(
     url = "https://github.com/oliverlee/bazel_clang_format/archive/%s.tar.gz" % BAZEL_CLANG_FORMAT_VERSION,
 )
 
+BAZEL_CLANG_TIDY_VERSION = "79921ab3346d61c7ae963f8fcbb7a9dc988a51bd"
+
+http_archive(
+    name = "bazel_clang_tidy",
+    sha256 = "79a6321fac9d0bba5521964971be6f2b352fd6018a3ff5ca3f43521b10c9c344",
+    strip_prefix = "bazel_clang_tidy-%s" % BAZEL_CLANG_TIDY_VERSION,
+    url = "https://github.com/oliverlee/bazel_clang_tidy/archive/%s.tar.gz" % BAZEL_CLANG_TIDY_VERSION,
+)
+
 http_archive(
     name = "buildifier_prebuilt",
     sha256 = "e46c16180bc49487bfd0f1ffa7345364718c57334fa0b5b67cb5f27eba10f309",

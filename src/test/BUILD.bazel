@@ -1,0 +1,18 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "decompress",
+    srcs = ["decompress.cpp"],
+    deps = [
+        "//src:decompress",
+    ],
+)
+
+cc_test(
+    name = "huffman",
+    srcs = ["huffman.cpp"],
+    deps = [
+        "//src:huffman",
+        "@boost_ut",
+    ],
+)

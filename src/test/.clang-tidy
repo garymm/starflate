@@ -1,0 +1,12 @@
+# This does not appear to allow chained inheritance
+InheritParentConfig: true
+
+Checks: >
+    # allow magic numbers in tests,
+    -readability-magic-numbers,
+
+    # allow namespace using directives in tests,
+    -google-build-using-namespace,
+
+    # don't catch all exceptions,
+    -bugprone-exception-escape,

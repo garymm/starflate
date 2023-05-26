@@ -8,6 +8,14 @@ build:clang-format --aspects @bazel_clang_format//:defs.bzl%clang_format_aspect
 build:clang-format --@bazel_clang_format//:binary=@llvm_16_0_toolchain//:clang-format
 build:clang-format --@bazel_clang_format//:config=//:format_config
 build:clang-format --output_groups=report
+build:clang-format --keep_going
+
+build:clang-tidy --config=clang16
+build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
+build:clang-tidy --@bazel_clang_tidy//:clang_tidy_executable=@llvm_16_0_toolchain//:clang-tidy
+build:clang-tidy --output_groups=report
+build:clang-tidy --spawn_strategy=local
+build:clang-tidy --keep_going
 
 try-import %workspace%/user.bazelrc
 
