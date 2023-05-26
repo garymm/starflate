@@ -1,7 +1,95 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
+package(features = [
+    "-asan",
+    "-tsan",
+    "-ubsan",
+])
+
 # Verify that the selected C++ toolchain provides std::expected
 cc_binary(
     name = "std_expected_available",
     srcs = ["std_expected_available.cpp"],
+)
+
+alias(
+    name = "gcc12",
+    actual = "@gcc_12_2_toolchain//:toolchain",
+)
+
+alias(
+    name = "clang16",
+    actual = select({
+        "@platforms//os:macos": "@llvm_16_0_toolchain//:cc-toolchain-aarch64-darwin",
+        "//conditions:default": "@llvm_16_0_toolchain//:cc-toolchain-x86_64-linux",
+    }),
+)
+
+# Doesn't work on MacOS: https://github.com/grailbio/bazel-toolchain/issues/192
+config_setting(
+    name = "llvm_linux",
+    constraint_values = ["@platforms//os:linux"],
+    flag_values = {"@bazel_tools//tools/cpp:compiler": "clang"},
+)
+
+llvm_linux_only = select({
+    "llvm_linux": [],
+    "//conditions:default": ["@platforms//:incompatible"],
+})
+
+cc_binary(
+    name = "asan_feature",
+    srcs = ["asan_feature_available.cpp"],
+    copts = ["-O0"],
+    features = ["asan"],
+    target_compatible_with = llvm_linux_only,
+)
+
+sh_test(
+    name = "asan_feature_available",
+    srcs = ["runtime_failure.sh"],
+    args = [
+        "$(location :asan_feature)",
+        "ERROR: AddressSanitizer: stack-use-after-scope",
+    ],
+    data = [":asan_feature"],
+)
+
+cc_binary(
+    name = "tsan_feature",
+    srcs = ["tsan_feature_available.cpp"],
+    copts = ["-O0"],
+    features = ["tsan"],
+    target_compatible_with = llvm_linux_only,
+)
+
+sh_test(
+    name = "tsan_feature_available",
+    srcs = ["runtime_failure.sh"],
+    args = [
+        "$(location :tsan_feature)",
+        "WARNING: ThreadSanitizer: data race",
+    ],
+    data = [":tsan_feature"],
+)
+
+cc_binary(
+    name = "ubsan_feature",
+    srcs = ["ubsan_feature_available.cpp"],
+    copts = [
+        "-O0",
+        "-Wno-array-bounds",
+    ],
+    features = ["ubsan"],
+    target_compatible_with = llvm_linux_only,
+)
+
+sh_test(
+    name = "ubsan_feature_available",
+    srcs = ["runtime_failure.sh"],
+    args = [
+        "$(location :ubsan_feature)",
+        "runtime error: index 10 out of bounds",
+    ],
+    data = [":ubsan_feature"],
 )

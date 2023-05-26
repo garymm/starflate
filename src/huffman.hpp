@@ -115,10 +115,14 @@ private:
     std::size_t frequency{};
     std::vector<code_point> children{};
 
-    friend constexpr auto
-    operator<=>(const tree& lhs, const tree& rhs) noexcept -> std::weak_ordering
+    friend constexpr auto operator<=>(const tree& lhs, const tree& rhs) noexcept
+        -> std::strong_ordering
     {
-      return lhs.frequency <=> rhs.frequency;
+      if (const auto cmp = lhs.frequency <=> rhs.frequency; cmp != 0) {
+        return cmp;
+      }
+
+      return lhs.children[0].symbol <=> rhs.children[0].symbol;
     }
 
     friend auto operator|(tree&& lhs, tree&& rhs) -> tree
@@ -156,7 +160,12 @@ private:
 
     using detail::pop;
     while (heap.size() > 1UZ) {
-      heap.push(pop(heap) | pop(heap));
+      // use a well defined order for popping
+      // https://en.cppreference.com/w/cpp/language/eval_order
+      auto a = pop(heap);
+      auto b = pop(heap);
+
+      heap.push(std::move(a) | std::move(b));
     }
 
     auto [f, code_table] = pop(heap);
