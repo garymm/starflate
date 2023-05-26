@@ -36,6 +36,8 @@ constexpr auto join(Consume auto&& container, Consume auto&& range)
       std::make_move_iterator(std::begin(range)),
       std::make_move_iterator(std::end(range)));
 
+  // false positive, `container` is an rvalue
+  // NOLINTNEXTLINE(bugprone-move-forwarding-reference)
   return std::move(container);
 }
 }  // namespace detail
@@ -91,7 +93,11 @@ public:
       }
     };
 
-    constexpr auto code() const -> code_type { return {bitsize, value}; }
+    [[nodiscard]]
+    constexpr auto code() const -> code_type
+    {
+      return {bitsize, value};
+    }
 
     friend auto
     operator<<(std::ostream& os, const code_point& point) -> std::ostream&
@@ -204,9 +210,17 @@ public:
   ///
   /// @{
 
-  auto begin() const { return table_.begin(); }
+  [[nodiscard]]
+  auto begin() const
+  {
+    return table_.begin();
+  }
 
-  auto end() const { return table_.end(); }
+  [[nodiscard]]
+  auto end() const
+  {
+    return table_.end();
+  }
 
   /// @}
 

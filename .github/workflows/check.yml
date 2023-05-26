@@ -43,7 +43,12 @@ jobs:
           --features=${{ matrix.feature }} \
           //...
 
-  clang-format:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [clang-format, clang-tidy]
+
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -52,17 +57,17 @@ jobs:
       uses: actions/cache@v3
       with:
         path: "~/.cache/bazel"
-        key: bazel-clang-format
+        key: bazel-build-${{ matrix.config }}
 
     - name: install libtinfo5
-      # clang format links against this
+      # clang tools link against this
       run: sudo apt-get install -y libtinfo5
 
     - run: |
         bazel \
           --bazelrc=.github/workflows/ci.bazelrc \
           build \
-          --config=clang-format \
+          --config=${{ matrix.config }} \
           //...
 
   buildifier:
