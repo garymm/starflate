@@ -61,17 +61,17 @@ auto main() -> int
 
     constexpr auto table =
         "Bits\tCode\tValue\tSymbol\n"
-        "1\t0\t1\t`e`\n"
-        "2\t10\t1\t`i`\n"
-        "3\t110\t1\t`n`\n"
-        "4\t1110\t1\t`q`\n"
-        "5\t11110\t1\t`x`\n"
-        "5\t11111\t0\t`\4`\n";
+        "1\t1\t1\t`e`\n"
+        "2\t01\t1\t`i`\n"
+        "3\t001\t1\t`n`\n"
+        "4\t0001\t1\t`q`\n"
+        "5\t00001\t1\t`x`\n"
+        "5\t00000\t0\t`\4`\n";
 
     auto ss = std::stringstream{};
     ss << huffman::table{frequencies, eot};
 
-    expect(table == ss.str());
+    expect(table == ss.str()) << ss.str();
   };
 
   test("code tables allow user defined types as symbols") = [] {
