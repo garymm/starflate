@@ -7,12 +7,3 @@ Checks: >
 
     # allow namespace using directives in tests,
     -google-build-using-namespace,
-
-    # don't catch all exceptions,
-    -bugprone-exception-escape,
-
-    # ignore checks to Google Benchmark headers,
-    -clang-analyzer-deadcode.DeadStores,
-    -cppcoreguidelines-avoid-non-const-global-variables,
-    -cppcoreguidelines-owning-memory,
-    -modernize-use-trailing-return-type,

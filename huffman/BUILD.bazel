@@ -1,0 +1,15 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "huffman",
+    srcs = [
+        "src/code.hpp",
+        "src/detail/static_vector.hpp",
+        "src/detail/table_node.hpp",
+        "src/detail/table_storage.hpp",
+        "src/encoding.hpp",
+        "src/table.hpp",
+    ],
+    hdrs = ["huffman.hpp"],
+    visibility = ["//:__subpackages__"],
+)

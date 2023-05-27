@@ -1,34 +1,9 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
 cc_test(
-    name = "decompress",
-    srcs = ["decompress.cpp"],
+    name = "decompress_test",
+    srcs = ["decompress_test.cpp"],
     deps = [
         "//src:decompress",
     ],
 )
-
-cc_test(
-    name = "huffman",
-    srcs = ["huffman.cpp"],
-    deps = [
-        "//src:huffman",
-        "@boost_ut",
-    ],
-)
-
-cc_binary(
-    name = "huffman_bench",
-    srcs = ["huffman_bench.cpp"],
-    deps = [
-        "//src:huffman",
-        "//src/version",
-        "@google_benchmark//:benchmark_main",
-    ],
-)
-
-#genrule(
-#    name = "record_bench",
-#    srcs = [":huffman_bench"],
-#    outs = ["huffman_bench.csv"],
-#)

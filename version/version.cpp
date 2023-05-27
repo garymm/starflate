@@ -1,4 +1,4 @@
-#include "src/version/version.hpp"
+#include "version/version.hpp"
 
 /**
  * This file is *MAGIC*

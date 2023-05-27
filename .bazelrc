@@ -13,8 +13,8 @@ build:clang-format --keep_going
 build:clang-tidy --config=clang16
 build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
 build:clang-tidy --@bazel_clang_tidy//:clang_tidy_executable=@llvm_16_0_toolchain//:clang-tidy
+build:clang-tidy --@bazel_clang_tidy//:clang_tidy_config=//:tidy_config
 build:clang-tidy --output_groups=report
-build:clang-tidy --spawn_strategy=local
 build:clang-tidy --keep_going
 
 try-import %workspace%/user.bazelrc
