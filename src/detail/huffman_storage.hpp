@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iterator>
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <vector>
@@ -100,11 +101,13 @@ public:
 
   template <class R>
   constexpr huffman_storage(
-      frequency_tag, const R& frequencies, symbol_type eot)
+      frequency_tag, const R& frequencies, std::optional<symbol_type> eot)
       : base_type{}
   {
-    base_type::reserve(frequencies.size() + 1UZ);  // +1 for EOT
-    base_type::emplace_back(eot, 1UZ);
+    base_type::reserve(frequencies.size() + std::size_t{eot.has_value()});
+    if (eot) {
+      base_type::emplace_back(*eot, 1UZ);
+    }
 
     for (auto [symbol, freq] : frequencies) {
       assert(symbol != eot and "`eot` cannot be a symbol in `frequencies``");
@@ -115,10 +118,13 @@ public:
   }
 
   template <class R>
-  constexpr huffman_storage(data_tag, const R& data, symbol_type eot)
+  constexpr huffman_storage(
+      data_tag, const R& data, std::optional<symbol_type> eot)
       : base_type{}
   {
-    base_type::emplace_back(eot, 1UZ);
+    if (eot) {
+      base_type::emplace_back(*eot, 1UZ);
+    }
 
     for (auto s : data) {
       assert(s != eot);

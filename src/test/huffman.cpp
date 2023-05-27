@@ -56,12 +56,12 @@ auto main() -> int
 
     constexpr auto table =
         "Bits\tCode\tValue\tSymbol\n"
-        "5\t11111\t0\t`\4`\n"
-        "5\t11110\t1\t`x`\n"
-        "4\t1110\t1\t`q`\n"
-        "3\t110\t1\t`n`\n"
+        "1\t0\t1\t`e`\n"
         "2\t10\t1\t`i`\n"
-        "1\t0\t1\t`e`\n";
+        "3\t110\t1\t`n`\n"
+        "4\t1110\t1\t`q`\n"
+        "5\t11110\t1\t`x`\n"
+        "5\t11111\t0\t`\4`\n";
 
     auto ss = std::stringstream{};
     ss << gpu_deflate::code_table{frequencies, eot};
@@ -77,11 +77,11 @@ auto main() -> int
 
     using CodePoint = decltype(table)::code_point_type;
 
-    expect(CodePoint{"FR", 1UZ, 1UZ} == table.begin()[5]);
-    expect(CodePoint{"IT", 2UZ, 1UZ} == table.begin()[4]);
-    expect(CodePoint{"UK", 3UZ, 1UZ} == table.begin()[3]);
-    expect(CodePoint{"DE", 4UZ, 1UZ} == table.begin()[2]);
-    expect(CodePoint{"BE", 5UZ, 1UZ} == table.begin()[1]);
+    expect(CodePoint{"FR", 1, 1} == table.begin()[0]);
+    expect(CodePoint{"IT", 2, 1} == table.begin()[1]);
+    expect(CodePoint{"UK", 3, 1} == table.begin()[2]);
+    expect(CodePoint{"DE", 4, 1} == table.begin()[3]);
+    expect(CodePoint{"BE", 4, 0} == table.begin()[4]);
   };
 
   test("code table can be statically sized") = [] {
@@ -145,11 +145,11 @@ auto main() -> int
 
     using CodePoint = decltype(table)::code_point_type;
 
-    static_assert(CodePoint{'e', 1UZ, 1UZ} == table.begin()[5]);
-    static_assert(CodePoint{'i', 2UZ, 1UZ} == table.begin()[4]);
-    static_assert(CodePoint{'n', 3UZ, 1UZ} == table.begin()[3]);
-    static_assert(CodePoint{'q', 4UZ, 1UZ} == table.begin()[2]);
-    static_assert(CodePoint{'x', 5UZ, 1UZ} == table.begin()[1]);
+    static_assert(CodePoint{'e', 1, 1} == table.begin()[0]);
+    static_assert(CodePoint{'i', 2, 1} == table.begin()[1]);
+    static_assert(CodePoint{'n', 3, 1} == table.begin()[2]);
+    static_assert(CodePoint{'q', 4, 1} == table.begin()[3]);
+    static_assert(CodePoint{'x', 4, 0} == table.begin()[4]);
   };
 
   test("code table constructible from symbol sequence") = [] {
@@ -202,6 +202,17 @@ auto main() -> int
     static constexpr auto t2 = gpu_deflate::code_table<char, 256>{data, eot};
 
     expect(constant<sizeof(t1) < sizeof(t2)>);
+    expect(std::ranges::equal(t1, t2));
+  };
+
+  test("code table constructible from symbol sequence without eot") = [] {
+    using namespace std::literals;
+
+    constexpr auto data = "this is an example of a huffman tree"sv;
+
+    const auto t1 = gpu_deflate::code_table{data};
+    static constexpr auto t2 = gpu_deflate::code_table<char, 256>{data};
+
     expect(std::ranges::equal(t1, t2));
   };
 }

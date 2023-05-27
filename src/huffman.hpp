@@ -12,6 +12,7 @@
 #include <iostream>
 #include <iterator>
 #include <numeric>
+#include <optional>
 #include <ranges>
 #include <span>
 #include <tuple>
@@ -241,9 +242,10 @@ class code_table
   {
     return node.base();
   }
-  using base_view_type = decltype(std::views::transform(
-      std::declval<decltype((table_))>(), &as_const_base));
-  base_view_type base_view_{std::views::transform(table_, &as_const_base)};
+  using base_view_type = decltype(std::views::reverse(std::views::transform(
+      std::declval<decltype((table_))>(), &as_const_base)));
+  base_view_type base_view_{
+      std::views::reverse(std::views::transform(table_, &as_const_base))};
 
   // @}
 
@@ -317,13 +319,13 @@ public:
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::tuple<symbol_type, std::size_t>>
-  constexpr code_table(const R& frequencies, symbol_type eot)
+  constexpr code_table(const R& frequencies, std::optional<symbol_type> eot)
       : table_{detail::frequency_tag{}, frequencies, eot}
   {
     const auto total_freq = std::accumulate(
         std::cbegin(frequencies),
         std::cend(frequencies),
-        1UZ,  // for EOT which we add later.
+        std::size_t{eot.has_value()},
         [](auto acc, auto kv) { return acc + kv.second; });
 
     construct_table();
@@ -350,7 +352,7 @@ public:
 
   template <std::ranges::input_range R>
     requires std::convertible_to<std::ranges::range_reference_t<R>, symbol_type>
-  constexpr explicit code_table(const R& data, symbol_type eot)
+  constexpr explicit code_table(const R& data, std::optional<symbol_type> eot)
       : table_{detail::data_tag{}, data, eot}
   {
     construct_table();
@@ -395,7 +397,7 @@ concept tuple_like = requires { typename std::tuple_size<T>::type; };
 template <class T>
 constexpr auto tuple_size_v()
 {
-  return 0UZ;
+  return std::dynamic_extent;
 };
 
 template <tuple_like T>
@@ -404,36 +406,29 @@ constexpr auto tuple_size_v()
   return std::tuple_size_v<T>;
 };
 
-template <class T>
-constexpr auto extent_v()
-{
-  return std::dynamic_extent;
-}
-
-template <tuple_like T>
-constexpr auto extent_v()
-{
-  return std::tuple_size_v<T> + 1UZ;  // +1 for EOT
-}
+template <class R>
+using symbol_type_t = std::tuple_element_t<0, std::ranges::range_value_t<R>>;
 
 }  // namespace detail
 
 template <class R>
   requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2)
-code_table(const R&) -> code_table<
-    std::tuple_element_t<0, std::ranges::range_value_t<R>>,
-    detail::extent_v<R>()>;
+code_table(const R&)
+    -> code_table<detail::symbol_type_t<R>, detail::tuple_size_v<R>()>;
 
 template <class R, class S>
-  requires (
-      detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2 and
-      std::convertible_to<
-          std::tuple_element_t<0, std::ranges::range_value_t<R>>,
-          S>)
-code_table(const R&, S) -> code_table<S, detail::extent_v<R>()>;
+  requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2 and
+            std::convertible_to<detail::symbol_type_t<R>, S>)
+code_table(const R&, S) -> code_table<
+    S,
+    std::max(detail::tuple_size_v<R>(), detail::tuple_size_v<R>() + 1UZ)>;
 
 template <class R, class S>
   requires std::convertible_to<std::ranges::range_reference_t<R>, S>
 code_table(const R&, S) -> code_table<S>;
+
+template <class R>
+  requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() != 2)
+code_table(const R&) -> code_table<std::ranges::range_value_t<R>>;
 
 }  // namespace gpu_deflate
