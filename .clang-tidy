@@ -28,6 +28,9 @@ Checks: >
     # use iterators as abstractions, not pointers,
     -readability-qualified-auto,
 
+    # it's okay for exceptions to escape main,
+    -bugprone-exception-escape,
+
     # false positive with spaceship operator,
     # https://reviews.llvm.org/D95714?id=320393,
     -modernize-use-nullptr,

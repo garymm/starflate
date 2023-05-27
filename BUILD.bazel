@@ -25,9 +25,6 @@ clang_format_update(
 clang_tidy_apply_fixes(
     name = "clang-tidy-fix",
     apply_replacements_binary = "@llvm_16_0_toolchain//:clang-apply-replacements",
-    extra_config_args = [
-        "--spawn_strategy=local",
-    ],
     tidy_binary = "@llvm_16_0_toolchain//:clang-tidy",
     tidy_config = ":tidy_config",
 )

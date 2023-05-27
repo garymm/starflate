@@ -1,6 +1,7 @@
 // https://github.com/bazelbuild/bazel/blob/abae5ca3e8142f93cf0c2597e3410ed955c4dd59/src/test/shell/bazel/cc_integration_test.sh#L1888-L1897
 
 // clang-format off
+// NOLINTBEGIN
 
 int main() {
   volatile int* p;
@@ -13,4 +14,5 @@ int main() {
   return *p;
 }
 
+// NOLINTEND
 // clang-format on
