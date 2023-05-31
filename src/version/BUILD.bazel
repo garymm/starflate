@@ -1,0 +1,24 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+genrule(
+    name = "gen_version_cc",
+    srcs = ["version.cpp"],
+    outs = ["version_gen.cpp"],
+    cmd = """
+    vcs_modified=$$(grep STABLE_VCS_MODIFIED bazel-out/stable-status.txt | sed 's/^STABLE_VCS_MODIFIED //')
+    vcs_revision=$$(grep STABLE_VCS_REVISION bazel-out/stable-status.txt | sed 's/^STABLE_VCS_REVISION //')
+    cat "$<" \\
+      | sed 's/STABLE_VCS_MODIFIED/'$${vcs_modified}'/g' \\
+      | sed 's/STABLE_VCS_REVISION/"'"$${vcs_revision}"'"/g' \\
+      > "$@"
+    """,
+    stamp = 1,
+    tags = ["manual"],
+)
+
+cc_library(
+    name = "version",
+    srcs = ["version_gen.cpp"],
+    hdrs = ["version.hpp"],
+    visibility = ["//visibility:public"],
+)
