@@ -1,4 +1,5 @@
 #include "src/huffman.hpp"
+#include "src/version/version.hpp"
 
 #include <benchmark/benchmark.h>
 
@@ -10,6 +11,7 @@ void BM_CodeTable(benchmark::State& state)
       {'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}};
   constexpr auto eot = char{4};
 
+  state.SetLabel(gpu_deflate::Version::full_version_string);
   for (auto _ : state) {
     gpu_deflate::code_table ct{frequencies, eot};
     benchmark::DoNotOptimize(ct);
