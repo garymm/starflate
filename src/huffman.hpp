@@ -176,6 +176,8 @@ private:
 
     auto [f, code_table] = pop(heap);
     assert(total_freq == f);
+    // make sure we don't get a warning about unused variable in release mode
+    (void)total_freq;
     return code_table;
   }
 
