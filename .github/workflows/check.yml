@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: [clang-format, clang-tidy]
+        flag: [--config=clang-format, --config=clang-tidy, --compilation_mode=opt]
 
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +57,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: "~/.cache/bazel"
-        key: bazel-build-${{ matrix.config }}
+        key: bazel-build-${{ matrix.flag }}
 
     - name: install libtinfo5
       # clang tools link against this
@@ -67,8 +67,9 @@ jobs:
         bazel \
           --bazelrc=.github/workflows/ci.bazelrc \
           build \
-          --config=${{ matrix.config }} \
+          ${{ matrix.flag }} \
           //...
+
 
   buildifier:
     runs-on: ubuntu-latest

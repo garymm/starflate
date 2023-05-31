@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Gary Miguel <garymm@garymm.org>
+Date: Tue, 30 May 2023 20:14:05 -0700
+Subject: disable warnings
+
+
+diff --git a/BUILD.bazel b/BUILD.bazel
+index 9961616..8cda07c 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -45,24 +45,25 @@ cc_library(
+         "include/benchmark/benchmark.h",
+         "include/benchmark/export.h",
+     ],
++    copts = ["-w"],  # disable all warnings
++    defines = [
++        "BENCHMARK_STATIC_DEFINE",
++    ] + select({
++        ":perfcounters": ["HAVE_LIBPFM"],
++        "//conditions:default": [],
++    }),
+     linkopts = select({
+         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
+         "//conditions:default": ["-pthread"],
+     }),
+-    strip_include_prefix = "include",
+-    visibility = ["//visibility:public"],
+     # Only static linking is allowed; no .so will be produced.
+     # Using `defines` (i.e. not `local_defines`) means that no
+     # dependent rules need to bother about defining the macro.
+     linkstatic = True,
+-    defines = [
+-        "BENCHMARK_STATIC_DEFINE",
+-    ] + select({
+-        ":perfcounters": ["HAVE_LIBPFM"],
+-        "//conditions:default": [],
+-    }),
++    strip_include_prefix = "include",
++    visibility = ["//visibility:public"],
+     deps = select({
+-        ":perfcounters": ["@libpfm//:libpfm"],
++        ":perfcounters": ["@libpfm"],
+         "//conditions:default": [],
+     }),
+ )
+@@ -70,7 +71,10 @@ cc_library(
+ cc_library(
+     name = "benchmark_main",
+     srcs = ["src/benchmark_main.cc"],
+-    hdrs = ["include/benchmark/benchmark.h", "include/benchmark/export.h"],
++    hdrs = [
++        "include/benchmark/benchmark.h",
++        "include/benchmark/export.h",
++    ],
+     strip_include_prefix = "include",
+     visibility = ["//visibility:public"],
+     deps = [":benchmark"],
+-- 
+2.39.2 (Apple Git-143)
+

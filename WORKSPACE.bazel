@@ -111,6 +111,17 @@ cc_library(
     url = "https://github.com/boost-ext/ut/archive/%s.tar.gz" % BOOST_UT_VERSION,
 )
 
+GOOGLE_BENCHMARK_VERSION = "1.8.0"
+
+http_archive(
+    name = "google_benchmark",
+    patch_args = ["-p1"],
+    patches = ["//:third_party/google_benchmark.patch"],
+    sha256 = "ea2e94c24ddf6594d15c711c06ccd4486434d9cf3eca954e2af8a20c88f9f172",
+    strip_prefix = "benchmark-%s" % GOOGLE_BENCHMARK_VERSION,
+    url = "https://github.com/google/benchmark/archive/refs/tags/v%s.tar.gz" % GOOGLE_BENCHMARK_VERSION,
+)
+
 BAZEL_CLANG_FORMAT_VERSION = "f4198b68887699a4d1862e44458e4969ad69fc8a"
 
 http_archive(
