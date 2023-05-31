@@ -19,3 +19,4 @@ build:clang-tidy --keep_going
 
 try-import %workspace%/user.bazelrc
 
+build --workspace_status_command=tools/bazel_workspace_status.sh

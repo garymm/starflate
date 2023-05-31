@@ -22,6 +22,14 @@ cc_binary(
     srcs = ["huffman_bench.cpp"],
     deps = [
         "//src:huffman",
+        "//src/version",
         "@google_benchmark//:benchmark_main",
     ],
+)
+
+genrule(
+    srcs,
+    name = "record_bench",
+    srcs = [":huffman_bench"],
+    outs = ["huffman_bench.csv"],
 )
