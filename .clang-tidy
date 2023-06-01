@@ -42,12 +42,17 @@ Checks: >
     -cppcoreguidelines-explicit-virtual-functions,
     -cppcoreguidelines-non-private-member-variables-in-classes,
 
+    # disable EXTREMELY SLOW checks,
+    -bugprone-reserved-identifier,
+    -readability-identifier-naming,
+    -misc-confusable-identifiers,
+
 CheckOptions:
     - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
       value: 1
 
-# only lint files under `src`
-HeaderFilterRegex: '__main__/src'
+# only lint files coming from this project
+HeaderFilterRegex: '__main__/'
 
 # clang-diagnostic-builtin-macro-redefined must be manually suppressed here
 # https://github.com/erenon/bazel_clang_tidy/issues/29
