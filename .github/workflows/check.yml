@@ -40,7 +40,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flag: [--config=clang-format, --config=clang-tidy, --compilation_mode=opt]
+        flag:
+          - '--config=clang-format'
+          - '--config=clang-tidy'
+          - '--config=verbose-clang-tidy'
+          - '--compilation_mode=opt'
 
     runs-on: ubuntu-latest
     steps:
