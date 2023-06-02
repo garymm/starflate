@@ -31,32 +31,14 @@ struct encoding : code
 
   /// Construct an encoding for a symbol with a specific code
   ///
-  constexpr explicit encoding(symbol_type s, code c)
-      : ::gpu_deflate::huffman::code{c}, symbol{s}
-  {}
-
-  /// Left pad the code of `*this` with a 0
-  ///
-  constexpr auto pad_with_0() -> void { ++bitsize; }
-
-  /// Left pad the code of `*this` with a 1
-  ///
-  constexpr auto pad_with_1() -> void { value += (1UZ << bitsize++); }
-
-  /// Returns the encoding for `*this`
-  ///
-  [[nodiscard]]
-  constexpr auto code() const -> ::gpu_deflate::huffman::code
-  {
-    return static_cast<::gpu_deflate::huffman::code>(*this);
-  }
+  constexpr explicit encoding(symbol_type s, code c) : code{c}, symbol{s} {}
 
   friend auto
   operator<<(std::ostream& os, const encoding& point) -> std::ostream&
   {
-    os << +point.bitsize        //
-       << "\t" << point.code()  //
-       << "\t" << point.value   //
+    os << +point.bitsize                           //
+       << "\t" << static_cast<const code&>(point)  //
+       << "\t" << point.value                      //
        << "\t`" << point.symbol << '`';
 
     return os;
