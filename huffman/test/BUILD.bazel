@@ -1,6 +1,15 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 
 cc_test(
+    name = "bit_test",
+    srcs = ["bit_test.cpp"],
+    deps = [
+        "//huffman",
+        "@boost_ut",
+    ],
+)
+
+cc_test(
     name = "code_test",
     srcs = ["code_test.cpp"],
     deps = [

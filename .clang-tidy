@@ -49,7 +49,9 @@ Checks: >
 
 CheckOptions:
     - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
-      value: 1
+      value: true
+    - key: performance-move-const-arg.CheckTriviallyCopyableMove
+      value: false
 
 # only lint files coming from this project
 HeaderFilterRegex: '__main__/'

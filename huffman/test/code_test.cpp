@@ -12,6 +12,7 @@ auto main() -> int
   using ::boost::ut::test;
 
   namespace huffman = ::gpu_deflate::huffman;
+  using namespace huffman::literals;
 
   static const auto to_string = [](huffman::code code) {
     auto ss = std::stringstream{};
@@ -37,7 +38,10 @@ auto main() -> int
   };
 
   static const auto has_bits = [](std::string_view sv, huffman::code code) {
-    return std::ranges::equal(sv, code.bit_view());
+    return std::ranges::equal(
+        sv, code.bit_view() | std::views::transform([](auto b) {
+              return static_cast<char>(b);
+            }));
   };
 
   test("code is convertible to range") = [] {
@@ -47,8 +51,6 @@ auto main() -> int
   };
 
   test("code is constructible with literal") = [] {
-    using namespace huffman::literals;
-
     expect(has_bits("1"sv, 1_c));
     expect(has_bits("0"sv, 0_c));
 
@@ -60,6 +62,20 @@ auto main() -> int
     expect(has_bits("11111"sv, 11111_c));
     expect(has_bits("11110"sv, 11110_c));
     expect(has_bits("00000"sv, 00000_c));
+  };
+
+  test("code is left-paddable with bit") = [] {
+    expect(00_c == (0_b >> 0_c));
+    expect(10_c == (1_b >> 0_c));
+
+    expect(01_c == (0_b >> 1_c));
+    expect(11_c == (1_b >> 1_c));
+
+    expect(00_c == (0_b >> 0_c));
+    expect(11_c == (1_b >> 1_c));
+
+    expect(0_c == (0_b >> huffman::code{}));
+    expect(1_c == (1_b >> huffman::code{}));
   };
 
   // NOLINTEND(readability-magic-numbers)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "huffman/src/bit.hpp"
+#include "huffman/src/code.hpp"
 #include "huffman/src/encoding.hpp"
 
 #include <algorithm>
@@ -114,11 +116,12 @@ public:
   ///
   constexpr auto join_with_next() & -> void
   {
-    const auto on_base = [](auto f) {
-      return [f](table_node& n) { std::invoke(f, n.base()); };
+    const auto left_pad_with = [](auto b) {
+      return [b](table_node& n) { b >> static_cast<code&>(n); };
     };
-    std::for_each(this, next(), on_base(&encoding_type::pad_with_0));
-    std::for_each(next(), next()->next(), on_base(&encoding_type::pad_with_1));
+
+    std::for_each(this, next(), left_pad_with(bit{0}));
+    std::for_each(next(), next()->next(), left_pad_with(bit{1}));
 
     const auto& n = *next();
     frequency_ += n.frequency();
