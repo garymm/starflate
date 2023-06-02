@@ -41,7 +41,7 @@ namespace gpu_deflate::huffman::detail {
 /// obtained the underlying `encoding` for each element.
 ///
 template <class Symbol>
-class table_node : encoding<Symbol>
+class table_node : public encoding<Symbol>
 {
   std::size_t frequency_{};
   std::size_t node_size_{};
@@ -63,21 +63,6 @@ public:
   constexpr auto frequency() const { return frequency_; }
 
   constexpr auto node_size() const { return node_size_; }
-
-  /// Obtain the underlying `encoding` for this node
-  ///
-  /// @{
-
-  constexpr auto base() -> encoding_type&
-  {
-    return static_cast<encoding_type&>(*this);
-  }
-  constexpr auto base() const -> const encoding_type&
-  {
-    return static_cast<const encoding_type&>(*this);
-  }
-
-  /// @}
 
   /// Obtains the next node, with respect to node size
   ///
@@ -137,7 +122,7 @@ public:
       return cmp;
     }
 
-    return lhs.base().symbol <=> rhs.base().symbol;
+    return lhs.symbol <=> rhs.symbol;
   }
 
   [[nodiscard]]
