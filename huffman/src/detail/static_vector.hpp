@@ -41,6 +41,20 @@ public:
     }
   }
 
+  constexpr auto resize(size_type new_cap) -> void
+  {
+    reserve(new_cap);
+
+    if (size() < new_cap) {
+      const auto first = begin() + size();
+      std::for_each(first, first + (new_cap - size()), [](auto& elem) {
+        elem = {};
+      });
+    }
+
+    size_ = new_cap;
+  }
+
   template <class... Args>
   constexpr auto emplace_back(Args&&... args) -> reference
   {

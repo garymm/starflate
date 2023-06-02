@@ -18,6 +18,9 @@
 
 namespace gpu_deflate::huffman {
 
+template <class T, std::size_t N>
+using c_array = T[N];
+
 /// Huffman code table
 /// @tparam Symbol symbol type
 /// @tparam Extent upper bound for alphabet size
@@ -45,7 +48,7 @@ class table
   static constexpr auto as_const_base(const node_type& node) -> const
       typename node_type::encoding_type&
   {
-    return node.base();
+    return static_cast<const typename node_type::encoding_type&>(node);
   }
   using base_view_type = decltype(std::views::reverse(std::views::transform(
       std::declval<decltype((table_))>(), &as_const_base)));
@@ -71,8 +74,7 @@ class table
 
     assert(
         std::ranges::unique(
-            table_,
-            [](auto& x, auto& y) { return x.base().symbol == y.base().symbol; })
+            table_, [](auto& x, auto& y) { return x.symbol == y.symbol; })
             .empty() and
         "`frequencies` cannot contain duplicate symbols");
 
@@ -162,23 +164,55 @@ public:
 
   /// @}
 
-  /// Return an iterator to the beginning/end
+  /// Constructs a `table` from the given code-symbol mapping contents
+  /// @tparam R sized-range of code-symbol 2-tuples
+  /// @pre all `code` and `symbol` values container in mapping are unique
+  /// @pre `code` values are prefix free
+  ///
+  /// Construct a `table` with explicit contents. This constructor avoids
+  /// generation of prefix-free codes for symbols and assumes that the provided
+  /// codes have been generated correctly.
   ///
   /// @{
 
+  template <std::ranges::sized_range R>
+    requires (
+        std::same_as<std::tuple_element_t<0, std::ranges::range_value_t<R>>,
+                     code> and
+        std::convertible_to<
+            std::tuple_element_t<1, std::ranges::range_value_t<R>>,
+            symbol_type>)
+  constexpr table(table_contents_tag, const R& map)
+      : table_{table_contents_tag{}, map}
+  {}
+
+  template <std::size_t N>
+  constexpr table(
+      table_contents_tag, const c_array<std::pair<code, symbol_type>, N>& map)
+      : table_{table_contents_tag{}, map}
+  {}
+
+  /// @}
+
+  /// Returns an iterator to the first `encoding`
+  ///
+  /// @note elements are ordered by code bitsize. If multiple elements have the
+  ///     same code bitsize, the order is unspecified.
+  ///
   [[nodiscard]]
   constexpr auto begin() const
   {
     return base_view_.begin();
   }
 
+  /// Returns an iterator past the last `encoding`
+  /// @copydetail begin()
+  ///
   [[nodiscard]]
   constexpr auto end() const
   {
     return base_view_.end();
   }
-
-  /// @}
 
   friend auto operator<<(std::ostream& os, const table& table) -> std::ostream&
   {
@@ -207,18 +241,18 @@ constexpr auto tuple_size_v()
   return std::tuple_size_v<T>;
 };
 
-template <class R>
-using symbol_type_t = std::tuple_element_t<0, std::ranges::range_value_t<R>>;
+template <std::size_t N, class R>
+using tuple_arg_t = std::tuple_element_t<N, std::ranges::range_value_t<R>>;
 
 }  // namespace detail
 
 template <class R>
   requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2)
-table(const R&) -> table<detail::symbol_type_t<R>, detail::tuple_size_v<R>()>;
+table(const R&) -> table<detail::tuple_arg_t<0, R>, detail::tuple_size_v<R>()>;
 
 template <class R, class S>
   requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2 and
-            std::convertible_to<detail::symbol_type_t<R>, S>)
+            std::convertible_to<detail::tuple_arg_t<0, R>, S>)
 table(const R&, S) -> table<
     S,
     std::max(detail::tuple_size_v<R>(), detail::tuple_size_v<R>() + 1UZ)>;
@@ -230,5 +264,13 @@ table(const R&, S) -> table<S>;
 template <class R>
   requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() != 2)
 table(const R&) -> table<std::ranges::range_value_t<R>>;
+
+template <class S, std::size_t N>
+table(table_contents_tag, const c_array<std::pair<code, S>, N>&) -> table<S, N>;
+
+template <class R>
+  requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2)
+table(table_contents_tag, const R&)
+    -> table<detail::tuple_arg_t<1, R>, detail::tuple_size_v<R>()>;
 
 }  // namespace gpu_deflate::huffman
