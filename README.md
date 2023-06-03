@@ -12,6 +12,11 @@ Should work on Linux and MacOS.
 ```
 bazel test //...
 ```
+
+### VS Code
+
+Install the recommended extensions. See .vscode/extensions.json.
+
 ### Auto-completion
 
 Create a compilation database:
@@ -22,6 +27,9 @@ bazel run @hedron_compile_commands//:refresh_all
 ```
 
 Then configure [clangd](https://clangd.llvm.org/).
+If you're using VS Code, the .vscode/settings does this for you,
+and .vscode/extensions.json already recommends installing the clangd extension.
+
 Otherwise, set these clangd args:
 
 ```
