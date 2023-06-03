@@ -4,7 +4,7 @@ Deflate on GPU
 
 ## Set up
 
-Currently only supported on Linux x86_64 / AMD64.
+Should work on Linux and MacOS.
 
 * Install `bazel` or `bazelisk`
 
@@ -12,14 +12,23 @@ Currently only supported on Linux x86_64 / AMD64.
 ```
 bazel test //...
 ```
-## TODO
+### Auto-completion
 
-* Support building on ARM64. Currently using Bootlin
-  toolchain which only exists for x86-64. Probably easiest
-  to:
-  *  switch to conda environment or docker container
-     that installs the toolchain (don't use a bazel
-     hermetic toolchain).
+Create a compilation database:
+
+```sh
+bazel build //...
+bazel run @hedron_compile_commands//:refresh_all
+```
+
+Then configure [clangd](https://clangd.llvm.org/).
+Otherwise, set these clangd args:
+
+```
+--header-insertion=never
+--compile-commands-dir=${workspaceFolder}/
+--query-driver=**
+```
 
 * Set up SYCL
 
