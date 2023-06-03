@@ -160,3 +160,16 @@ bazel_skylib_workspace()
 load("@buildifier_prebuilt//:defs.bzl", "buildifier_prebuilt_register_toolchains")
 
 buildifier_prebuilt_register_toolchains()
+
+COMPILE_COMMANDS_VERSION = "3dddf205a1f5cde20faf2444c1757abe0564ff4c"
+
+http_archive(
+    name = "hedron_compile_commands",
+    sha256 = "3cd0e49f0f4a6d406c1d74b53b7616f5e24f5fd319eafc1bf8eee6e14124d115",
+    strip_prefix = "bazel-compile-commands-extractor-%s" % COMPILE_COMMANDS_VERSION,
+    url = "https://github.com/hedronvision/bazel-compile-commands-extractor/archive/%s.tar.gz" % COMPILE_COMMANDS_VERSION,
+)
+
+load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_setup")
+
+hedron_compile_commands_setup()
