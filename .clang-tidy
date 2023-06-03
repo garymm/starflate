@@ -19,6 +19,9 @@ Checks: >
     # short names are fine for short lifetimes,
     -readability-identifier-length,
 
+    # allow bool conversions like `int x = 1; if (x)`,
+    -readability-implicit-bool-conversion,
+
     # allow unused variables to be unnamed,
     -readability-named-parameter,
 
