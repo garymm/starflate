@@ -38,7 +38,22 @@ Otherwise, set these clangd args:
 --query-driver=**
 ```
 
-* Set up SYCL
+
+## Status
+
+### Done
+
+* Build Huffman code tables from given symbol frequencies.
+
+### TODO
+
+* Implement Huffman decompression with C++ std lib.
+* Set up bazel build of OpenSYCL with OpenMP.
+* Port Huffman decompression to SYCL.
+* Implement LZ77 with C++ std lib.
+* Port LZ77 to SYCL.
+* Implement Deflate decompression.
+* Try building it for a GPU.
 
 ## References
 
