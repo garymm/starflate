@@ -139,6 +139,18 @@ public:
     (void)total_freq;
   }
 
+  template <std::integral I, auto N>
+  constexpr explicit table(
+      const c_array<std::pair<symbol_type, I>, N>& frequencies)
+      : table{frequencies |
+                  std::views::transform(
+                      [](auto p) -> std::pair<symbol_type, std::size_t> {
+                        assert(p.second > I{});
+                        return {p.first, p.second};
+                      }),
+              {}}
+  {}
+
   /// @}
 
   /// Constructs a `table` from a sequence of symbols
@@ -264,6 +276,9 @@ table(const R&, S) -> table<S>;
 template <class R>
   requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() != 2)
 table(const R&) -> table<std::ranges::range_value_t<R>>;
+
+template <class S, std::integral I, std::size_t N>
+table(const c_array<std::pair<S, I>, N>&) -> table<S, N>;
 
 template <class S, std::size_t N>
 table(table_contents_tag, const c_array<std::pair<code, S>, N>&) -> table<S, N>;

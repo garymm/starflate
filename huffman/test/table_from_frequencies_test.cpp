@@ -155,6 +155,27 @@ auto main() -> int
     static_assert(E{'q', {4, 1}} == table.begin()[3]);
     static_assert(E{'x', {4, 0}} == table.begin()[4]);
   };
+
+  test("code table constructible in constant expression context with deduced "
+       "frequencies type") = [] {
+    static constexpr auto frequencies = std::array<
+        std::pair<char, std::size_t>,
+        5>{{{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+
+    static constexpr auto t1 = huffman::table{frequencies};
+
+    static constexpr auto t2 =  // clang-format off
+      huffman::table{{
+        std::pair{'e', 100},
+                 {'n', 20},
+                 {'x', 1},
+                 {'i', 40},
+                 {'q', 3},
+      }};
+    // clang-format on
+
+    expect(std::ranges::equal(t1, t2));
+  };
 }
 
 // NOLINTEND(readability-magic-numbers,google-build-using-namespace)
