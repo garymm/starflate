@@ -7,6 +7,7 @@
 #include <compare>
 #include <concepts>
 #include <cstddef>
+#include <expected>
 #include <functional>
 #include <numeric>
 #include <optional>
@@ -104,6 +105,10 @@ public:
   ///
   using symbol_type = typename encoding_type::symbol_type;
 
+  /// Const iterator type
+  ///
+  using const_iterator = decltype(std::as_const(base_view_).begin());
+
   /// Constructs a `table` from a symbol-frequency mapping
   /// @tparam R sized-range of symbol-frequency 2-tuples
   /// @param frequencies mapping with symbol frequencies
@@ -127,7 +132,7 @@ public:
   constexpr table(const R& frequencies, std::optional<symbol_type> eot)
       : table_{detail::frequency_tag{}, frequencies, eot}
   {
-    const auto total_freq = std::accumulate(
+    [[maybe_unused]] const auto total_freq = std::accumulate(
         std::cbegin(frequencies),
         std::cend(frequencies),
         std::size_t{eot.has_value()},
@@ -136,7 +141,6 @@ public:
     construct_table();
 
     assert(total_freq == table_.front().frequency());
-    (void)total_freq;
   }
 
   template <std::integral I, auto N>
@@ -212,7 +216,7 @@ public:
   ///     same code bitsize, the order is unspecified.
   ///
   [[nodiscard]]
-  constexpr auto begin() const
+  constexpr auto begin() const -> const_iterator
   {
     return base_view_.begin();
   }
@@ -221,9 +225,47 @@ public:
   /// @copydetail begin()
   ///
   [[nodiscard]]
-  constexpr auto end() const
+  constexpr auto end() const -> const_iterator
   {
     return base_view_.end();
+  }
+
+  /// Finds element with specific code within the code table
+  /// @param c code to search for
+  /// @param pos first element to consider
+  ///
+  /// Searches from `pos` for an element with code `c`. Elements are sorted
+  /// within a code table by code bitsize and search will terminate if an
+  /// element is reached with a larger code bitsize.
+  ///
+  /// @return a `std::expected` containing a value with an iterator to the
+  ///     element with code equal to `c` if found. Otherwise, a `std::expected`
+  ///     containing an error with an iterator to the first element with code
+  ///     bitsize larger than `c` or `end()`.
+  ///
+  /// @note If the code `c.bitsize()` exceeds the size of any code in `*this`,
+  ///     `find` returns `{std::unexpect, end()}`. Callers should check this
+  ///     condition to detect invalid inputs or use of an incorrect `table` for
+  ///     a given stream of compressed data.
+  ///
+  [[nodiscard]]
+  constexpr auto
+  find(code c) const -> std::expected<const_iterator, const_iterator>
+  {
+    return find(c, begin());
+  }
+  constexpr auto find(code c, const_iterator pos) const
+      -> std::expected<const_iterator, const_iterator>
+  {
+    using R = std::expected<const_iterator, const_iterator>;
+
+    for (; pos != end() and ((*pos).bitsize() <= c.bitsize()); ++pos) {
+      if (static_cast<const code&>(*pos) == c) {
+        return R{std::in_place, pos};
+      }
+    }
+
+    return R{std::unexpect, pos};
   }
 
   friend auto operator<<(std::ostream& os, const table& table) -> std::ostream&

@@ -36,9 +36,9 @@ struct encoding : code
   friend auto
   operator<<(std::ostream& os, const encoding& point) -> std::ostream&
   {
-    os << +point.bitsize                           //
+    os << +point.bitsize()                         //
        << "\t" << static_cast<const code&>(point)  //
-       << "\t" << point.value                      //
+       << "\t" << point.value()                    //
        << "\t`" << point.symbol << '`';
 
     return os;

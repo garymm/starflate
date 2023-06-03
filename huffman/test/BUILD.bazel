@@ -45,6 +45,15 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "table_find_code_test",
+    srcs = ["table_find_code_test.cpp"],
+    deps = [
+        "//huffman",
+        "@boost_ut",
+    ],
+)
+
 cc_binary(
     name = "bench",
     srcs = ["bench.cpp"],

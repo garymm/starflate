@@ -23,18 +23,12 @@ auto main() -> int
   // NOLINTBEGIN(readability-magic-numbers)
 
   test("code is streamable") = [] {
-    expect(std::ranges::equal(
-        "0"sv, to_string(huffman::code{.bitsize = 1, .value = 0})));
-    expect(std::ranges::equal(
-        "10"sv, to_string(huffman::code{.bitsize = 2, .value = 0b10})));
-    expect(std::ranges::equal(
-        "110"sv, to_string(huffman::code{.bitsize = 3, .value = 0b110})));
-    expect(std::ranges::equal(
-        "1110"sv, to_string(huffman::code{.bitsize = 4, .value = 0b1110})));
-    expect(std::ranges::equal(
-        "11110"sv, to_string(huffman::code{.bitsize = 5, .value = 0b11110})));
-    expect(std::ranges::equal(
-        "11111"sv, to_string(huffman::code{.bitsize = 5, .value = 0b11111})));
+    expect(std::ranges::equal("0"sv, to_string(huffman::code{1, 0})));
+    expect(std::ranges::equal("10"sv, to_string(huffman::code{2, 0b10})));
+    expect(std::ranges::equal("110"sv, to_string(huffman::code{3, 0b110})));
+    expect(std::ranges::equal("1110"sv, to_string(huffman::code{4, 0b1110})));
+    expect(std::ranges::equal("11110"sv, to_string(huffman::code{5, 0b11110})));
+    expect(std::ranges::equal("11111"sv, to_string(huffman::code{5, 0b11111})));
   };
 
   static const auto has_bits = [](std::string_view sv, huffman::code code) {
@@ -45,9 +39,8 @@ auto main() -> int
   };
 
   test("code is convertible to range") = [] {
-    static_assert(has_bits("0"sv, huffman::code{.bitsize = 1, .value = 0}));
-    static_assert(
-        has_bits("11110"sv, huffman::code{.bitsize = 5, .value = 0b11110}));
+    static_assert(has_bits("0"sv, huffman::code{1, 0}));
+    static_assert(has_bits("11110"sv, huffman::code{5, 0b11110}));
   };
 
   test("code is constructible with literal") = [] {
