@@ -51,11 +51,11 @@ bootlin_toolchain(
     ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
 )
 
-BAZEL_TOOLCHAIN_VERSION = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
+BAZEL_TOOLCHAIN_VERSION = "b397ad28f7927aed01e09922e6ecc4b9244ddc9e"
 
 http_archive(
     name = "bazel_toolchain",
-    sha256 = "52b09a61b9a03f4e0994402243a03018a858da6a5774de898f99e344520e9a25",
+    sha256 = "3816f3f040f80ba2853f9d470d1148904be717592621018408fa2c98c34690cb",
     strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
     url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
 )
@@ -70,7 +70,7 @@ llvm_toolchain(
     cxx_flags = {
         "": [
             "-stdlib=libc++",
-            "-std=c++2b",
+            "-std=c++2b",  # TODO: Once LLVM 17 is available, switch to -std=c++23 and move it to COMMON_CXX_FLAGS.
             "-Wshadow",
         ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
     },
@@ -81,7 +81,7 @@ llvm_toolchain(
     link_libs = {
         "": ["--driver-mode=g++"],
     },
-    llvm_version = "16.0.0",
+    llvm_version = "16.0.3",
 )
 
 # register llvm first, it has better error messages
