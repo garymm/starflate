@@ -27,13 +27,12 @@ alias(
 
 # Doesn't work on MacOS: https://github.com/grailbio/bazel-toolchain/issues/192
 config_setting(
-    name = "llvm_linux",
+    name = "linux",
     constraint_values = ["@platforms//os:linux"],
-    flag_values = {"@bazel_tools//tools/cpp:compiler": "clang"},
 )
 
-llvm_linux_only = select({
-    "llvm_linux": [],
+linux_only = select({
+    "linux": [],
     "//conditions:default": ["@platforms//:incompatible"],
 })
 
@@ -42,7 +41,7 @@ cc_binary(
     srcs = ["asan_feature_available.cpp"],
     copts = ["-O0"],
     features = ["asan"],
-    target_compatible_with = llvm_linux_only,
+    target_compatible_with = linux_only,
 )
 
 sh_test(
@@ -60,7 +59,7 @@ cc_binary(
     srcs = ["tsan_feature_available.cpp"],
     copts = ["-O0"],
     features = ["tsan"],
-    target_compatible_with = llvm_linux_only,
+    target_compatible_with = linux_only,
 )
 
 sh_test(
@@ -81,7 +80,7 @@ cc_binary(
         "-Wno-array-bounds",
     ],
     features = ["ubsan"],
-    target_compatible_with = llvm_linux_only,
+    target_compatible_with = linux_only,
 )
 
 sh_test(

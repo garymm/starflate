@@ -12,14 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain: [gcc12, clang16]
-        feature: ['']
-        include:
-          - toolchain: clang16
-            feature: asan
-          - toolchain: clang16
-            feature: tsan
-          - toolchain: clang16
-            feature: ubsan
+        feature: ['', asan, tsan, ubsan]
 
     runs-on: ubuntu-latest
     steps:
