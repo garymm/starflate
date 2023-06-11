@@ -1,10 +1,10 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_BOOTLIN_COMMIT = "74452f50aff6b9282507da3458f5a150cb6fee4e"
+BAZEL_BOOTLIN_COMMIT = "eae108c14445074ab5c8ae7f5338eebf1873ae69"
 
 http_archive(
     name = "bazel_bootlin",
-    sha256 = "95fb2e53fdb5c068155934930ccdfad2917980e4e5646ab8c873029ca107560d",
+    sha256 = "ea76bcd8fc27da13bc79acc4844baadc563e07888a128265ca74d07cd58c1f34",
     strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
     url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
 )
@@ -52,6 +52,8 @@ bootlin_toolchain(
     libc_impl = "glibc",
 )
 
+load("@gcc_12_2_toolchain//:sysroot_path.bzl", "SYSROOT_PATH")
+
 BAZEL_TOOLCHAIN_VERSION = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
 
 http_archive(
@@ -81,8 +83,23 @@ llvm_toolchain(
     # https://github.com/grailbio/bazel-toolchain/blob/ceeedcc4464322e05fe5b8df3749cc02273ee083/toolchain/cc_toolchain_config.bzl#L148-L150
     link_libs = {
         "": ["--driver-mode=g++"],
+        "linux-x86_64": [
+            "-stdlib=libc++",
+            "--driver-mode=g++",
+        ] + [
+            opt.format(sysroot = SYSROOT_PATH)
+            for opt in [
+                "-Wl,--rpath={sysroot}/lib",
+                "-Wl,--rpath={sysroot}/usr/lib",
+                "-Wl,--rpath={sysroot}/../lib64",
+                "-Wl,--dynamic-linker={sysroot}/lib/ld-linux-x86-64.so.2",
+            ]
+        ],
     },
     llvm_version = "16.0.0",
+    sysroot = {
+        "linux-x86_64": "@gcc_12_2_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
+    },
 )
 
 # register llvm first, it has better error messages
