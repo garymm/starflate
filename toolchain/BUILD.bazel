@@ -58,7 +58,6 @@ sh_test(
 cc_binary(
     name = "tsan_feature",
     srcs = ["tsan_feature_available.cpp"],
-    copts = ["-O0"],
     features = ["tsan"],
     target_compatible_with = linux_only,
 )
