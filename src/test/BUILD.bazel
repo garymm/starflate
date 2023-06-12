@@ -2,6 +2,7 @@ load("@rules_cc//cc:defs.bzl", "cc_test")
 
 cc_test(
     name = "decompress_test",
+    timeout = "short",
     srcs = ["decompress_test.cpp"],
     deps = [
         "//src:decompress",

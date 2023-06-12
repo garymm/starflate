@@ -46,6 +46,7 @@ cc_binary(
 
 sh_test(
     name = "asan_feature_available",
+    timeout = "short",
     srcs = ["runtime_failure.sh"],
     args = [
         "$(location :asan_feature)",
@@ -64,6 +65,7 @@ cc_binary(
 
 sh_test(
     name = "tsan_feature_available",
+    timeout = "short",
     srcs = ["runtime_failure.sh"],
     args = [
         "$(location :tsan_feature)",
@@ -85,6 +87,7 @@ cc_binary(
 
 sh_test(
     name = "ubsan_feature_available",
+    timeout = "short",
     srcs = ["runtime_failure.sh"],
     args = [
         "$(location :ubsan_feature)",
