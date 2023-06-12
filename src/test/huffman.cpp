@@ -114,8 +114,8 @@ auto main() -> int
     const auto frequencies = std::array<std::pair<char, std::size_t>, 5>{
         {{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
 
+    [[maybe_unused]]
     const auto t1 = gpu_deflate::code_table{frequencies};
-    (void)t1;
   };
 
   test("code table rejects duplicate symbols") = [] {
