@@ -125,8 +125,7 @@ auto main() -> int
     const auto frequencies = std::array<std::pair<char, std::size_t>, 5>{
         {{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
 
-    const auto t1 = huffman::table{frequencies};
-    (void)t1;
+    [[maybe_unused]] const auto t1 = huffman::table{frequencies};
   };
 
   test("code table can contain excess capacity with static extent") = [] {

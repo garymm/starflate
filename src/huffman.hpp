@@ -322,6 +322,7 @@ public:
   constexpr code_table(const R& frequencies, std::optional<symbol_type> eot)
       : table_{detail::frequency_tag{}, frequencies, eot}
   {
+    [[maybe_unused]]
     const auto total_freq = std::accumulate(
         std::cbegin(frequencies),
         std::cend(frequencies),
@@ -331,8 +332,6 @@ public:
     construct_table();
 
     assert(total_freq == table_.front().frequency());
-    // make sure we don't get a warning about unused variable in release mode
-    (void)total_freq;
   }
 
   /// @}
