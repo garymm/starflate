@@ -52,8 +52,6 @@ bootlin_toolchain(
     libc_impl = "glibc",
 )
 
-load("@gcc_12_2_toolchain//:sysroot_path.bzl", "SYSROOT_PATH")
-
 BAZEL_TOOLCHAIN_VERSION = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
 
 http_archive(
@@ -63,10 +61,11 @@ http_archive(
     url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
 )
 
-load("@bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
-load("@bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("//tools:llvm_toolchain_dependencies.bzl", "llvm_toolchain_dependencies")
 
-bazel_toolchain_dependencies()
+llvm_toolchain_dependencies()
+
+load("//tools:llvm_toolchain.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_16_0_toolchain",
@@ -83,23 +82,9 @@ llvm_toolchain(
     # https://github.com/grailbio/bazel-toolchain/blob/ceeedcc4464322e05fe5b8df3749cc02273ee083/toolchain/cc_toolchain_config.bzl#L148-L150
     link_libs = {
         "": ["--driver-mode=g++"],
-        "linux-x86_64": [
-            "-stdlib=libc++",
-            "--driver-mode=g++",
-        ] + [
-            opt.format(sysroot = SYSROOT_PATH)
-            for opt in [
-                "-Wl,--rpath={sysroot}/lib",
-                "-Wl,--rpath={sysroot}/usr/lib",
-                "-Wl,--rpath={sysroot}/../lib64",
-                "-Wl,--dynamic-linker={sysroot}/lib/ld-linux-x86-64.so.2",
-            ]
-        ],
     },
+    linux_x86_64_sysroot = "@gcc_12_2_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
     llvm_version = "16.0.0",
-    sysroot = {
-        "linux-x86_64": "@gcc_12_2_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
-    },
 )
 
 # register llvm first, it has better error messages
@@ -150,11 +135,11 @@ http_archive(
     url = "https://github.com/oliverlee/bazel_clang_format/archive/%s.tar.gz" % BAZEL_CLANG_FORMAT_VERSION,
 )
 
-BAZEL_CLANG_TIDY_VERSION = "ba5e6709229ac56f166326fedce99820da81ca4b"
+BAZEL_CLANG_TIDY_VERSION = "aae87699cca19d8f6e84538576ab47587043d1d2"
 
 http_archive(
     name = "bazel_clang_tidy",
-    sha256 = "7b71307778e69be250d548e66386776962b564cad29d748cf070adab899afe20",
+    sha256 = "ee7d89375b5c6554b40ea1b1132a8cf7e3e269f7c2f6b2f595e4c7181d44b736",
     strip_prefix = "bazel_clang_tidy-%s" % BAZEL_CLANG_TIDY_VERSION,
     url = "https://github.com/oliverlee/bazel_clang_tidy/archive/%s.tar.gz" % BAZEL_CLANG_TIDY_VERSION,
 )
