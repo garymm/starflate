@@ -8,13 +8,13 @@ on:
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         toolchain: [gcc12, clang16]
         feature: ['', asan, tsan, ubsan]
 
-    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
@@ -37,6 +37,7 @@ jobs:
           //...
 
   build:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -45,8 +46,9 @@ jobs:
           - '--config=clang-tidy'
           - '--config=verbose-clang-tidy'
           - '--compilation_mode=opt'
+        exclude:
+          - flag: ${{ github.event_name == 'pull_request' && '--config=verbose-clang-tidy' || 'dummy' }}
 
-    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
