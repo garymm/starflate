@@ -1,5 +1,6 @@
 #pragma once
 
+#include "huffman/src/detail/base_view.hpp"
 #include "huffman/src/detail/table_node.hpp"
 #include "huffman/src/detail/table_storage.hpp"
 
@@ -41,20 +42,18 @@ class table
 
   detail::table_storage<node_type, Extent> table_;
 
-  // Create a base view member to prevent member call on the temporary created
-  // by views::transform
+  // Create a base view member to prevent a member call on the temporary view
+  // object
   //
   // @{
 
-  static constexpr auto as_const_base(const node_type& node) -> const
-      typename node_type::encoding_type&
-  {
-    return static_cast<const typename node_type::encoding_type&>(node);
-  }
-  using base_view_type = decltype(std::views::reverse(std::views::transform(
-      std::declval<decltype((table_))>(), &as_const_base)));
-  base_view_type base_view_{
-      std::views::reverse(std::views::transform(table_, &as_const_base))};
+  using base_view_type = std::ranges::reverse_view<detail::base_view<
+      std::ranges::ref_view<detail::table_storage<node_type, Extent>>,
+      const typename node_type::encoding_type>>;
+
+  base_view_type base_view_{detail::base_view<
+      std::ranges::ref_view<detail::table_storage<node_type, Extent>>,
+      const typename node_type::encoding_type>{std::views::all(table_)}};
 
   // @}
 
@@ -107,7 +106,7 @@ public:
 
   /// Const iterator type
   ///
-  using const_iterator = decltype(std::as_const(base_view_).begin());
+  using const_iterator = std::ranges::iterator_t<base_view_type>;
 
   /// Constructs a `table` from a symbol-frequency mapping
   /// @tparam R sized-range of symbol-frequency 2-tuples
