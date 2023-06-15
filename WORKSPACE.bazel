@@ -81,7 +81,7 @@ llvm_toolchain(
     # use `link_libs` to prevent overriding default `link_flags`
     # https://github.com/grailbio/bazel-toolchain/blob/ceeedcc4464322e05fe5b8df3749cc02273ee083/toolchain/cc_toolchain_config.bzl#L148-L150
     link_libs = {
-        "": ["--driver-mode=g++"],
+        "": ["-fsanitize-link-c++-runtime"],
     },
     linux_x86_64_sysroot = "@gcc_12_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
     llvm_version = "16.0.4",
