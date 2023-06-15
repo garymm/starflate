@@ -14,14 +14,14 @@ cc_binary(
 
 alias(
     name = "gcc12",
-    actual = "@gcc_12_2_toolchain//:toolchain",
+    actual = "@gcc_12_toolchain//:toolchain",
 )
 
 alias(
     name = "clang16",
     actual = select({
-        "@platforms//os:macos": "@llvm_16_0_toolchain//:cc-toolchain-aarch64-darwin",
-        "//conditions:default": "@llvm_16_0_toolchain//:cc-toolchain-x86_64-linux",
+        "@platforms//os:macos": "@llvm_16_toolchain//:cc-toolchain-aarch64-darwin",
+        "//conditions:default": "@llvm_16_toolchain//:cc-toolchain-x86_64-linux",
     }),
 )
 

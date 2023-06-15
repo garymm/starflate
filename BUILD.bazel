@@ -18,14 +18,14 @@ filegroup(
 
 clang_format_update(
     name = "clang-format",
-    binary = "@llvm_16_0_toolchain//:clang-format",
+    binary = "@llvm_16_toolchain//:clang-format",
     config = ":format_config",
 )
 
 clang_tidy_apply_fixes(
     name = "clang-tidy-fix",
-    apply_replacements_binary = "@llvm_16_0_toolchain//:clang-apply-replacements",
-    tidy_binary = "@llvm_16_0_toolchain//:clang-tidy",
+    apply_replacements_binary = "@llvm_16_toolchain//:clang-apply-replacements",
+    tidy_binary = "@llvm_16_toolchain//:clang-tidy",
     tidy_config = ":tidy_config",
 )
 

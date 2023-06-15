@@ -6,14 +6,14 @@ genrule(
     cmd = """
 echo "$$(dirname $@)/../$(rootpath {tidy}) --enable-check-profile \\$$@" > $@
 """.format(
-        tidy = "@llvm_16_0_toolchain//:clang-tidy",
+        tidy = "@llvm_16_toolchain//:clang-tidy",
     ),
     executable = True,
-    tools = ["@llvm_16_0_toolchain//:clang-tidy"],
+    tools = ["@llvm_16_toolchain//:clang-tidy"],
 )
 
 sh_binary(
     name = "verbose-clang-tidy",
     srcs = ["verbose-clang-tidy.sh"],
-    data = ["@llvm_16_0_toolchain//:clang-tidy"],
+    data = ["@llvm_16_toolchain//:clang-tidy"],
 )
