@@ -13,7 +13,7 @@ load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
 
 COMMON_CXX_FLAGS = [
     "-march=native",
-    "-fdiagnostics-color=always",
+    "-fdiagnostics-color=auto",
 ]
 
 COMMON_CXX_WARNINGS = [

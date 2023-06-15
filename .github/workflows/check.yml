@@ -24,9 +24,9 @@ jobs:
         path: "~/.cache/bazel"
         key: bazel-test-${{ matrix.toolchain }}-${{ matrix.feature }}
 
-    - name: install libtinfo5
-      # clang tools link against this
-      run: sudo apt-get install -y libtinfo5
+#    - name: install libtinfo5
+#      # clang tools link against this
+#      run: sudo apt-get install -y libtinfo5
 
     - run: |
         bazel \
@@ -58,9 +58,9 @@ jobs:
         path: "~/.cache/bazel"
         key: bazel-build-${{ matrix.flag }}
 
-    - name: install libtinfo5
-      # clang tools link against this
-      run: sudo apt-get install -y libtinfo5
+#    - name: install libtinfo5
+#      # clang tools link against this
+#      run: sudo apt-get install -y libtinfo5
 
     - run: |
         bazel \
