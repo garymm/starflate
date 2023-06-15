@@ -25,8 +25,12 @@ jobs:
         key: bazel-test-${{ matrix.toolchain }}-${{ matrix.feature }}
 
     - name: install libtinfo5
-      # clang tools link against this
-      run: sudo apt-get install -y libtinfo5
+      # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
+      # runners already have `libtinfo.so.6` installed. We just create a
+      # symlink since it's faster than installing libtinfo5.
+      # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
+      run: |
+        sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
 
     - run: |
         bazel \
@@ -59,8 +63,12 @@ jobs:
         key: bazel-build-${{ matrix.flag }}
 
     - name: install libtinfo5
-      # clang tools link against this
-      run: sudo apt-get install -y libtinfo5
+      # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
+      # runners already have `libtinfo.so.6` installed. We just create a
+      # symlink since it's faster than installing libtinfo5.
+      # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
+      run: |
+        sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
 
     - run: |
         bazel \
@@ -69,6 +77,28 @@ jobs:
           ${{ matrix.flag }} \
           //...
 
+  build-without-terminfo:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [gcc12, clang16]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: mount bazel cache
+      uses: actions/cache@v3
+      with:
+        path: "~/.cache/bazel"
+        key: bazel-build-without-terminfo-${{ matrix.toolchain }}
+
+    - run: |
+        bazel \
+          --bazelrc=.github/workflows/ci.bazelrc \
+          build \
+          --config=${{ matrix.toolchain }} \
+          //...
 
   buildifier:
     runs-on: ubuntu-latest

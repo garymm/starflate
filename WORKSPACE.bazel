@@ -1,20 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_BOOTLIN_COMMIT = "eae108c14445074ab5c8ae7f5338eebf1873ae69"
-
-http_archive(
-    name = "bazel_bootlin",
-    sha256 = "ea76bcd8fc27da13bc79acc4844baadc563e07888a128265ca74d07cd58c1f34",
-    strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
-    url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
-)
-
-load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
-
-COMMON_CXX_FLAGS = [
-    "-march=native",
-    "-fdiagnostics-color=always",
-]
+COMMON_CXX_FLAGS = ["-march=native"]
 
 COMMON_CXX_WARNINGS = [
     "-Werror",
@@ -34,14 +20,43 @@ COMMON_CXX_WARNINGS = [
     "-Wimplicit-fallthrough",
 ]
 
+# Bazel sends stdout/stderr to file so we cannot use `-fdiagnostics-color=auto`
+# https://github.com/bazelbuild/bazel/issues/6046#issuecomment-626941725
+#
+# Clang will also require libtinfo.so.5 with `-fdiagnostics-color=always`
+# https://github.com/mun-lang/mun/issues/191#issuecomment-753402659
+# https://reviews.llvm.org/D42274
+load("//tools:host_system_libraries.bzl", "host_system_libraries")
+
+host_system_libraries(
+    name = "host_system_libraries",
+    find = ["libtinfo.so.5"],
+)
+
+load("@host_system_libraries//:defs.bzl", "HOST_SYSTEM_LIBRARIES")
+
+# Note: not correcton MacOS.
+LLVM_COLOR_FLAGS = ["-fdiagnostics-color=always" if "libinfo.so.5" in HOST_SYSTEM_LIBRARIES else ""]
+
+BAZEL_BOOTLIN_COMMIT = "eae108c14445074ab5c8ae7f5338eebf1873ae69"
+
+http_archive(
+    name = "bazel_bootlin",
+    sha256 = "ea76bcd8fc27da13bc79acc4844baadc563e07888a128265ca74d07cd58c1f34",
+    strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
+    url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
+)
+
+load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
+
 # for mapping from buildroot version to gcc version
 # see https://toolchains.bootlin.com/releases_x86-64.html
-#
 bootlin_toolchain(
     name = "gcc_12_toolchain",
     architecture = "x86-64",
     buildroot_version = "bleeding-edge-2022.08-1",
     extra_cxx_flags = [
+        "-fdiagnostics-color=always",
         "-std=c++23",
         "-Wduplicated-cond",
         "-Wduplicated-branches",
@@ -74,7 +89,7 @@ llvm_toolchain(
             "-stdlib=libc++",
             "-std=c++2b",
             "-Wshadow",
-        ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS,
+        ] + COMMON_CXX_FLAGS + COMMON_CXX_WARNINGS + LLVM_COLOR_FLAGS,
     },
     # Link UBSan C++ runtime libraries if the `ubsan` feature is enabled
     # https://github.com/bazelbuild/bazel/issues/12797#issuecomment-980641064
