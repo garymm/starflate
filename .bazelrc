@@ -5,7 +5,7 @@ build:clang16 --extra_toolchains=//toolchain:clang16
 build:gcc12   --extra_toolchains=//toolchain:gcc12
 
 build:clang-format --aspects @bazel_clang_format//:defs.bzl%clang_format_aspect
-build:clang-format --@bazel_clang_format//:binary=@llvm_16_0_toolchain//:clang-format
+build:clang-format --@bazel_clang_format//:binary=@llvm_16_toolchain//:clang-format
 build:clang-format --@bazel_clang_format//:config=//:format_config
 build:clang-format --output_groups=report
 build:clang-format --keep_going
@@ -20,7 +20,7 @@ build:verbose-clang-tidy --config=clang-tidy-base
 build:verbose-clang-tidy --@bazel_clang_tidy//:clang_tidy_executable=//tools:verbose-clang-tidy
 
 build:clang-tidy --config=clang-tidy-base
-build:clang-tidy --@bazel_clang_tidy//:clang_tidy_executable=@llvm_16_0_toolchain//:clang-tidy
+build:clang-tidy --@bazel_clang_tidy//:clang_tidy_executable=@llvm_16_toolchain//:clang-tidy
 
 try-import %workspace%/user.bazelrc
 

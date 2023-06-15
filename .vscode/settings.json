@@ -8,5 +8,5 @@
         "--compile-commands-dir=${workspaceFolder}/",
         "--query-driver=**"
     ],
-    "clangd.path": "${workspaceFolder}/bazel-gpu-deflate/external/llvm_16_0_toolchain_llvm/bin/clangd"
+    "clangd.path": "${workspaceFolder}/bazel-gpu-deflate/external/llvm_16_toolchain_llvm/bin/clangd"
 }

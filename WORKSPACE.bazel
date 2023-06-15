@@ -38,7 +38,7 @@ COMMON_CXX_WARNINGS = [
 # see https://toolchains.bootlin.com/releases_x86-64.html
 #
 bootlin_toolchain(
-    name = "gcc_12_2_toolchain",
+    name = "gcc_12_toolchain",
     architecture = "x86-64",
     buildroot_version = "bleeding-edge-2022.08-1",
     extra_cxx_flags = [
@@ -68,7 +68,7 @@ llvm_toolchain_dependencies()
 load("//tools:llvm_toolchain.bzl", "llvm_toolchain")
 
 llvm_toolchain(
-    name = "llvm_16_0_toolchain",
+    name = "llvm_16_toolchain",
     cxx_flags = {
         "": [
             "-stdlib=libc++",
@@ -83,17 +83,17 @@ llvm_toolchain(
     link_libs = {
         "": ["--driver-mode=g++"],
     },
-    linux_x86_64_sysroot = "@gcc_12_2_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
+    linux_x86_64_sysroot = "@gcc_12_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
     llvm_version = "16.0.4",
 )
 
 # register llvm first, it has better error messages
-load("@llvm_16_0_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+load("@llvm_16_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
 
 register_toolchains(
-    "@gcc_12_2_toolchain//:toolchain",
+    "@gcc_12_toolchain//:toolchain",
 )
 
 BOOST_UT_VERSION = "e53a47d37bc594e80bd5f1b8dc1ade8dce4429d3"
