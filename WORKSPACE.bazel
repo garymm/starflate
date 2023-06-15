@@ -52,11 +52,11 @@ bootlin_toolchain(
     libc_impl = "glibc",
 )
 
-BAZEL_TOOLCHAIN_VERSION = "41ff2a05c0beff439bad7acfd564e6827e34b13b"
+BAZEL_TOOLCHAIN_VERSION = "c65ef7a45907016a754e5bf5bfabac76eb702fd3"
 
 http_archive(
     name = "bazel_toolchain",
-    sha256 = "52b09a61b9a03f4e0994402243a03018a858da6a5774de898f99e344520e9a25",
+    sha256 = "c70777b0aa877085323aa1ced3b6e011811a9800092e837043aa5f678d838301",
     strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
     url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
 )
@@ -84,7 +84,7 @@ llvm_toolchain(
         "": ["--driver-mode=g++"],
     },
     linux_x86_64_sysroot = "@gcc_12_2_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
-    llvm_version = "16.0.0",
+    llvm_version = "16.0.4",
 )
 
 # register llvm first, it has better error messages
