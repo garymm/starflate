@@ -1,5 +1,7 @@
 #pragma once
 
+#include "huffman/src/detail/iterator_interface.hpp"
+
 #include <concepts>
 #include <iterator>
 #include <ranges>
@@ -11,7 +13,7 @@ namespace gpu_deflate::huffman::detail {
 /// @tparam V underlying view
 /// @tparam B base class
 ///
-template <std::ranges::forward_range V, class B>
+template <std::ranges::random_access_range V, class B>
   requires std::ranges::view<V> and
            std::same_as<std::ranges::iterator_t<V>,
                         std::ranges::sentinel_t<V>> and
@@ -20,7 +22,7 @@ class base_view : public std::ranges::view_interface<base_view<V, B>>
 {
   // This is largely adapted from `transform_view` (or other views), although we
   // apply some simplifications:
-  // * V must model `forward_range` instead of `input_range`
+  // * V must model `random_access_range` instead of `input_range`
   // * sentinel_t<V> is the same as iterator_t<V>
   //
   // https://eel.is/c++draft/range.transform
@@ -28,7 +30,7 @@ class base_view : public std::ranges::view_interface<base_view<V, B>>
   V base_{};
 
 public:
-  class iterator
+  class iterator : public iterator_interface<iterator>
   {
     using base_iterator = std::ranges::iterator_t<V>;
     base_iterator base_{};
@@ -56,78 +58,21 @@ public:
     {
       return static_cast<reference>(*base_);
     }
-    constexpr auto operator->() const -> pointer { return &**this; }
-
-    constexpr auto operator++() -> iterator&
-    {
-      ++base_;
-      return *this;
-    }
-    constexpr auto operator++(int) -> iterator
-    {
-      auto tmp = *this;
-      ++*this;
-      return tmp;
-    }
-
-    constexpr auto operator--() -> iterator&
-      requires std::ranges::bidirectional_range<V>
-    {
-      --base_;
-      return *this;
-    }
-    constexpr auto operator--(int) -> iterator
-      requires std::ranges::bidirectional_range<V>
-    {
-      auto tmp = *this;
-      --*this;
-      return tmp;
-    }
 
     constexpr auto operator+=(difference_type n) -> iterator&
-      requires std::ranges::random_access_range<V>
     {
       base_ += n;
       return *this;
     }
-    constexpr auto operator-=(difference_type n) -> iterator&
-      requires std::ranges::random_access_range<V>
-    {
-      base_ -= n;
-      return *this;
-    }
 
-    constexpr auto operator[](difference_type n) const -> reference
-      requires std::ranges::random_access_range<V>
+    friend constexpr auto
+    operator-(const iterator& x, const iterator& y) -> difference_type
     {
-      return static_cast<reference>(base_[n]);
+      return x.base() - y.base();
     }
 
     friend constexpr auto
     operator<=>(const iterator&, const iterator&) = default;
-
-    friend constexpr auto operator+(iterator i, difference_type n) -> iterator
-      requires std::ranges::random_access_range<V>
-    {
-      return i += n;
-    }
-    friend constexpr auto operator+(difference_type n, iterator i) -> iterator
-      requires std::ranges::random_access_range<V>
-    {
-      return i + n;
-    }
-
-    friend constexpr auto operator-(iterator i, difference_type n) -> iterator
-      requires std::ranges::random_access_range<V>
-    {
-      return i -= n;
-    }
-    friend constexpr auto
-    operator-(const iterator& x, const iterator& y) -> difference_type
-      requires std::ranges::random_access_range<V>
-    {
-      return x.base() - y.base();
-    }
   };
 
   base_view()
