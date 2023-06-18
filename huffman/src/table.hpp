@@ -1,5 +1,6 @@
 #pragma once
 
+#include "huffman/src/detail/adjacent_node_iterator.hpp"
 #include "huffman/src/detail/base_view.hpp"
 #include "huffman/src/detail/table_node.hpp"
 #include "huffman/src/detail/table_storage.hpp"
@@ -10,6 +11,7 @@
 #include <cstddef>
 #include <expected>
 #include <functional>
+#include <iterator>
 #include <numeric>
 #include <optional>
 #include <ostream>
@@ -59,13 +61,11 @@ class table
 
   constexpr static auto find_node_if(auto first, auto last, auto pred)
   {
-    for (; first != last; first = first->next()) {
-      if (pred(*first)) {
-        break;
-      }
-    }
-
-    return first;
+    return std::find_if(
+               detail::adjacent_node_iterator{first},
+               detail::adjacent_node_iterator{last},
+               pred)
+        .base();
   }
 
   constexpr auto construct_table() -> void
@@ -79,19 +79,23 @@ class table
         "`frequencies` cannot contain duplicate symbols");
 
     while (table_.front().node_size() != table_.size()) {
-      table_.front().join_with_next();
+      node_type::join_adjacent(
+          *table_.data(),
+          *std::next(detail::adjacent_node_iterator{table_.data()}));
 
-      const auto last = table_.data() + table_.size();
       const auto has_higher_freq =
-          [f = table_.front().frequency()](const auto& n) {
+          [f = table_.data()->frequency()](const auto& n) {
             return n.frequency() > f;
           };
 
-      auto lower = table_.front().next();
-      auto upper = find_node_if(lower, last, has_higher_freq);
+      const auto lower =
+          std::next(detail::adjacent_node_iterator{table_.data()});
+      const auto last =
+          detail::adjacent_node_iterator{table_.data() + table_.size()};
+      const auto upper = std::find_if(lower, last, has_higher_freq);
 
       // re-sort after creating a new internal node
-      std::rotate(&table_.front(), lower, upper);
+      std::rotate(table_.data(), lower.base(), upper.base());
     }
   }
 

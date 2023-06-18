@@ -32,10 +32,11 @@ class base_view : public std::ranges::view_interface<base_view<V, B>>
 public:
   class iterator : public iterator_interface<iterator>
   {
-    using base_iterator = std::ranges::iterator_t<V>;
-    base_iterator base_{};
+    std::ranges::iterator_t<V> base_{};
 
   public:
+    using base_iterator = std::ranges::iterator_t<V>;
+
     using iterator_category =
         typename std::iterator_traits<base_iterator>::iterator_category;
     using value_type = std::ranges::range_value_t<V>;

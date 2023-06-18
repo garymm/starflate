@@ -2,6 +2,7 @@
 
 #include "huffman/src/bit.hpp"
 #include "huffman/src/code.hpp"
+#include "huffman/src/detail/adjacent_node_iterator.hpp"
 #include "huffman/src/encoding.hpp"
 
 #include <algorithm>
@@ -64,32 +65,12 @@ public:
 
   constexpr auto node_size() const { return node_size_; }
 
-  /// Obtains the next node, with respect to node size
-  ///
-  /// Given a contiguous container of nodes, `next()` returns a pointer to
-  /// the next node, using `node_size()` to determine if `*this` is an
-  /// internal node or a leaf node. If `*this` is an internal node, (i.e.
-  /// `*this` represents a node with children) `next()` skips the appropriate
-  /// number of elements in the associated container.
-  ///
-  /// | freq: 3 | freq: 1 | freq: 1 | freq: 4 | freq: 2 |
-  /// | ns:   3 | ns:   1 | ns:   1 | ns:   2 | ns:   1 |
-  /// ^                             ^
-  /// this                          |
-  ///                               |
-  /// this->next() -----------------+
-  ///
-  /// @{
-
-  constexpr auto next() -> table_node* { return this + node_size(); }
-  constexpr auto next() const -> const table_node*
-  {
-    return this + node_size();
-  }
-
-  /// @}
-
   /// "Joins" two `table_node`s
+  ///
+  /// Logically "join" `lhs` with the next adjacent node `rhs`, "creating" an
+  /// internal node. This adds the frequency of the `rhs` node to the `lhs`node,
+  /// left pads all the codes of the internal nodes of `lhs` with 0s and left
+  /// pads all the code of the internal nodes of `rhs` with 1s.
   ///
   /// Logically "join" `*this` with the next adjacent node `*next()`,
   /// "creating" an internal node. This adds the frequency of the next node to
@@ -97,20 +78,29 @@ public:
   /// 0s and left pads all the code of the internal nodes of `*next()` with
   /// 1s.
   ///
-  /// @pre `*this` is not `back()` of the associated container
+  /// @pre `lhs` and `rhs` are adjacent
   ///
-  constexpr auto join_with_next() & -> void
+  static constexpr auto join_adjacent(table_node& lhs, table_node& rhs) -> void
   {
+    const auto i = adjacent_node_iterator{&lhs};
+    const auto j = adjacent_node_iterator{&rhs};
+
+    assert(
+        std::next(i) == j and
+        "`lhs` and `rhs` must be adjacent "
+        "`table_node` values.");
+
+    const auto k = std::next(j);
+
     const auto left_pad_with = [](auto b) {
       return [b](table_node& n) { b >> static_cast<code&>(n); };
     };
 
-    std::for_each(this, next(), left_pad_with(bit{0}));
-    std::for_each(next(), next()->next(), left_pad_with(bit{1}));
+    std::for_each(i.base(), j.base(), left_pad_with(bit{0}));
+    std::for_each(j.base(), k.base(), left_pad_with(bit{1}));
 
-    const auto& n = *next();
-    frequency_ += n.frequency();
-    node_size_ += n.node_size();
+    lhs.frequency_ += rhs.frequency_;
+    lhs.node_size_ += rhs.node_size_;
   }
 
   [[nodiscard]]
