@@ -1,5 +1,15 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 
+config_setting(
+    name = "clang_compiler",
+    flag_values = {"@bazel_tools//tools/cpp:compiler": "clang"},
+)
+
+config_setting(
+    name = "gcc_compiler",
+    flag_values = {"@bazel_tools//tools/cpp:compiler": "gcc"},
+)
+
 cc_test(
     name = "bit_test",
     timeout = "short",
@@ -8,6 +18,10 @@ cc_test(
         "//huffman",
         "@boost_ut",
     ],
+    copts = select({
+        ":clang_compiler": ["-fthis-unknown-flag"],
+        ":gcc_compiler": ["-fthat-unknown-flag"],
+    }),
 )
 
 cc_test(
