@@ -4,6 +4,7 @@ cc_library(
     name = "huffman",
     srcs = [
         "src/bit.hpp",
+        "src/bit_span.hpp",
         "src/code.hpp",
         "src/detail/base_view.hpp",
         "src/detail/iterator_interface.hpp",
