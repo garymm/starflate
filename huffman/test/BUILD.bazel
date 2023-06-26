@@ -60,6 +60,16 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "bit_span_test",
+    timeout = "short",
+    srcs = ["bit_span_test.cpp"],
+    deps = [
+        "//huffman",
+        "@boost_ut",
+    ],
+)
+
 cc_binary(
     name = "bench",
     srcs = ["bench.cpp"],
