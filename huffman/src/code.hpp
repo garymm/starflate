@@ -86,6 +86,21 @@ public:
     return std::move(c);
   }
 
+  /// Right pad `c` with `b`
+  ///
+  friend constexpr auto operator<<(code& c, bit b) -> code&
+  {
+    c.value_ <<= 1U;
+    c.value_ |= static_cast<std::size_t>(bool(b));
+    ++c.bitsize_;
+    return c;
+  }
+  friend constexpr auto operator<<(code&& c, bit b) -> code&&
+  {
+    c << b;
+    return std::move(c);
+  }
+
   /// Inserts a textual representation of `c` into `os`
   ///
   friend auto operator<<(std::ostream& os, const code& c) -> std::ostream&

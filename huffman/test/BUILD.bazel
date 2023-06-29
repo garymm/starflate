@@ -70,6 +70,16 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "decode_test",
+    timeout = "short",
+    srcs = ["decode_test.cpp"],
+    deps = [
+        "//huffman",
+        "@boost_ut",
+    ],
+)
+
 cc_binary(
     name = "bench",
     srcs = ["bench.cpp"],
