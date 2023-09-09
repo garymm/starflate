@@ -38,13 +38,13 @@ load("@host_system_libraries//:defs.bzl", "HOST_SYSTEM_LIBRARIES")
 # Note: not correct on MacOS.
 LLVM_COLOR_FLAGS = ["-fdiagnostics-color=always" if "libinfo.so.5" in HOST_SYSTEM_LIBRARIES else ""]
 
-BAZEL_BOOTLIN_COMMIT = "TODO https://github.com/oliverlee/bazel_bootlin/pull/3"
+BAZEL_BOOTLIN_COMMIT = "d256920fe20adabc1af87a1085655836f20fbb65"
 
 http_archive(
     name = "bazel_bootlin",
-    sha256 = "TODO",
+    sha256 = "97dc43eb74bd421634d6d44380d0562483aabc7796393ca93531a455ec44843a",
     strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
-    url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
+    url = "https://github.com/garymm/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
 )
 
 load("@bazel_bootlin//:defs.bzl", "bootlin_toolchain")
