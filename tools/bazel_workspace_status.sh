@@ -23,7 +23,6 @@ function revisionDesc() {
 }
 
 # These aren't STABLE_ because they might change without the code changing.
-echo BUILD_SCM_BRANCH $(git symbolic-ref --short HEAD)
 echo BUILD_SCM_USER $(git config user.name) \<$(git config user.email)\>
 
 readonly rev=$(git rev-parse HEAD)
