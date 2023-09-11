@@ -8,5 +8,5 @@
         "--compile-commands-dir=${workspaceFolder}/",
         "--query-driver=**"
     ],
-    "clangd.path": "${workspaceFolder}/external/llvm_16_toolchain_files/bin/clangd"
+    "clangd.path": "${workspaceFolder}/external/llvm_toolchain_files/bin/clangd"
 }

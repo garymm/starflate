@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [gcc12, clang16]
+        toolchain: [gcc, clang]
         feature: ['', asan, tsan, ubsan]
 
     steps:
@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [gcc12, clang16]
+        toolchain: [gcc, clang]
 
     steps:
     - uses: actions/checkout@v3
