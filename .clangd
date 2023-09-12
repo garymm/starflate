@@ -1,0 +1,7 @@
+# https://clangd.llvm.org/config
+CompileFlags:
+  # Our toolchain wraps clang in a script, and clangd's system include extractor treats
+  # the output of that script differently just based on the file name. We
+  # replace the path to the script with the path to the actual clang binary so that
+  # clangd parses the output correctly.
+  Compiler: external/llvm_toolchain_files/bin/clang
