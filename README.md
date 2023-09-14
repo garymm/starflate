@@ -9,7 +9,7 @@ Should work on Linux and MacOS.
 * Install `bazel` or `bazelisk`
 
 * Verify that you can build and test:
-```
+```sh
 bazel test //...
 ```
 
@@ -22,22 +22,14 @@ Install the recommended extensions. See .vscode/extensions.json.
 Create a compilation database:
 
 ```sh
-bazel build //...
-bazel run @hedron_compile_commands//:refresh_all
+bazel build //... && bazel run @hedron_compile_commands//:refresh_all
 ```
 
 Then configure [clangd](https://clangd.llvm.org/).
 If you're using VS Code, the .vscode/settings does this for you,
 and .vscode/extensions.json already recommends installing the clangd extension.
 
-Otherwise, set these clangd args:
-
-```
---header-insertion=never
---compile-commands-dir=${workspaceFolder}/
---query-driver=**
-```
-
+Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/settings.json).
 
 ## Status
 

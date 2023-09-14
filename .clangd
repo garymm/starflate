@@ -1,0 +1,9 @@
+# https://clangd.llvm.org/config
+CompileFlags:
+  # clangd system includes extractor doesn't set -stdlib=libc++,
+  # even though we do when we actually compile, which results in
+  # incorrect system include paths. These fix that.
+  # Specifying non-existent include paths on other platforms doesn't cause issues
+  # (e.g. mentioning linux-gnu works on MacOS).
+  Add: [-nostdinc++, -isystem, external/llvm_toolchain_files/include/x86_64-unknown-linux-gnu/c++/v1, -isystem, external/llvm_toolchain_files/include/c++/v1]
+
