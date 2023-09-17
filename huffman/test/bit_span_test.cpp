@@ -13,7 +13,7 @@ auto main() -> int
   using ::boost::ut::expect;
   using ::boost::ut::test;
 
-  namespace huffman = ::gpu_deflate::huffman;
+  namespace huffman = ::starflate::huffman;
   using namespace huffman::literals;
 
   test("basic") = [] {

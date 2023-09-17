@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <functional>
 
-namespace gpu_deflate::huffman::detail {
+namespace starflate::huffman::detail {
 
 /// A node of a Huffman tree
 ///
@@ -133,4 +133,4 @@ public:
   }
 };
 
-}  // namespace gpu_deflate::huffman::detail
+}  // namespace starflate::huffman::detail

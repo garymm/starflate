@@ -15,10 +15,10 @@ void BM_CodeTable(benchmark::State& state)
       {{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
   constexpr auto eot = char{4};
 
-  state.SetLabel(gpu_deflate::Version::full_version_string);
+  state.SetLabel(starflate::Version::full_version_string);
   for (auto _ : state) {
     // NOLINTNEXTLINE(readability-magic-numbers)
-    auto ct = gpu_deflate::huffman::table<char, 6>{frequencies, eot};
+    auto ct = starflate::huffman::table<char, 6>{frequencies, eot};
     benchmark::DoNotOptimize(ct);
   }
 }

@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace gpu_deflate::huffman::detail {
+namespace starflate::huffman::detail {
 
 /// A simplified implementation of `static_vector`
 ///
@@ -88,4 +88,4 @@ public:
   constexpr auto cend() const noexcept -> const_iterator { return end(); }
 };
 
-}  // namespace gpu_deflate::huffman::detail
+}  // namespace starflate::huffman::detail

@@ -11,7 +11,7 @@
 #include <ranges>
 #include <utility>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 
 /// A Huffman code
 ///
@@ -138,7 +138,7 @@ consteval auto operator""_c() -> code
 {
   constexpr auto N = sizeof...(Bits);
 
-  using ::gpu_deflate::huffman::detail::bit_shift;
+  using ::starflate::huffman::detail::bit_shift;
 
   return {N, []<std::size_t... Is>(std::index_sequence<Is...>) {
             return (bit_shift(Bits, N - 1 - Is) | ...);
@@ -146,4 +146,4 @@ consteval auto operator""_c() -> code
 }
 
 }  // namespace literals
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman

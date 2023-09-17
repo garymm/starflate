@@ -5,7 +5,7 @@
 
 #include <iterator>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 /// Decodes a bit stream using a code table.
 ///
 /// If a code from \p bits is not found in \p code_table, the
@@ -45,4 +45,4 @@ decode(const table<Symbol, Extent>& code_table, bit_span bits, O output) -> O
   }
   return output;
 }
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman

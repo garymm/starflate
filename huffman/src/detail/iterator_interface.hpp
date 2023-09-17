@@ -3,7 +3,7 @@
 #include <concepts>
 #include <iterator>
 
-namespace gpu_deflate::huffman::detail {
+namespace starflate::huffman::detail {
 
 /// CRTP helper class used to synthesize operations for a random access iterator
 /// @tparam D derived iterator type
@@ -104,4 +104,4 @@ struct iterator_interface
   operator<=>(const iterator_interface&, const iterator_interface&) = default;
 };
 
-}  // namespace gpu_deflate::huffman::detail
+}  // namespace starflate::huffman::detail

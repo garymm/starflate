@@ -5,7 +5,7 @@
 #include <concepts>
 #include <ostream>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 
 /// A mapping between a symbol and a code
 ///
@@ -49,4 +49,4 @@ struct encoding : code
   operator<=>(const encoding&, const encoding&) = default;
 };
 
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman
