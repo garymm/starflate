@@ -77,29 +77,6 @@ jobs:
           ${{ matrix.flag }} \
           //...
 
-  build-without-terminfo:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [gcc, clang]
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: mount bazel cache
-      uses: actions/cache@v3
-      with:
-        path: "~/.cache/bazel"
-        key: bazel-build-without-terminfo-${{ matrix.toolchain }}
-
-    - run: |
-        bazel \
-          --bazelrc=.github/workflows/ci.bazelrc \
-          build \
-          --config=${{ matrix.toolchain }} \
-          //...
-
   buildifier:
     runs-on: ubuntu-latest
     steps:
