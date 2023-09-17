@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace gpu_deflate {
+namespace starflate {
 class Version
 {
 public:
@@ -11,4 +11,4 @@ public:
   static const std::string full_version_string;
   static const bool isReleaseBuild;
 };
-}  // namespace gpu_deflate
+}  // namespace starflate

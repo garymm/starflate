@@ -4,7 +4,7 @@
 #include <cassert>
 #include <ostream>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 
 /// A distinct type to represent a bit
 ///
@@ -78,4 +78,4 @@ consteval auto operator""_b(unsigned long long int n) -> bit
 
 }  // namespace literals
 
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman

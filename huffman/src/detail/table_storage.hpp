@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 
 /// Disambiguation tag to specify a table is constructed with a code-symbol
 ///    mapping
@@ -129,4 +129,4 @@ public:
 };
 
 }  // namespace detail
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman

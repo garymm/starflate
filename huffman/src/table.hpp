@@ -18,7 +18,7 @@
 #include <tuple>
 #include <utility>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 
 template <class T, std::size_t N>
 using c_array = T[N];
@@ -329,4 +329,4 @@ template <class R>
 table(table_contents_tag, const R&)
     -> table<detail::tuple_arg_t<1, R>, detail::tuple_size_v<R>()>;
 
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman

@@ -11,7 +11,7 @@
 #include <limits>
 #include <ranges>
 
-namespace gpu_deflate::huffman {
+namespace starflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
 class bit_span
 {
@@ -101,4 +101,4 @@ public:
     return iterator{*this, bit_size_};
   };
 };
-}  // namespace gpu_deflate::huffman
+}  // namespace starflate::huffman

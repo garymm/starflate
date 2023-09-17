@@ -18,7 +18,7 @@ auto main() -> int
 {
   using namespace ::boost::ut;
 
-  namespace huffman = ::gpu_deflate::huffman;
+  namespace huffman = ::starflate::huffman;
 
   test("code table constructible from symbol sequence") = [] {
     const auto frequencies = std::vector<std::pair<char, std::size_t>>{

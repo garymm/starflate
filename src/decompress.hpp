@@ -7,7 +7,7 @@
 #include <span>
 #include <vector>
 
-namespace gpu_deflate {
+namespace starflate {
 
 // error code enum
 enum class Error : std::uint8_t
@@ -25,4 +25,4 @@ auto decompress(
   return decompressed;
 }
 
-}  // namespace gpu_deflate
+}  // namespace starflate

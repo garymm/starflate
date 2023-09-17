@@ -7,7 +7,7 @@
 #include <ranges>
 #include <utility>
 
-namespace gpu_deflate::huffman::detail {
+namespace starflate::huffman::detail {
 
 /// A view of elements cast to a base class
 /// @tparam V underlying view
@@ -113,4 +113,4 @@ public:
 //
 //}
 
-}  // namespace gpu_deflate::huffman::detail
+}  // namespace starflate::huffman::detail
