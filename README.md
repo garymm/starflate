@@ -33,6 +33,8 @@ Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/setting
 
 ## Status
 
+![CI](https://github.com/garymm/starflate/actions/workflows/check.yml/badge.svg) [![codecov](https://codecov.io/gh/garymm/starflate/graph/badge.svg?token=PGIMUPMNIF)](https://codecov.io/gh/garymm/starflate)
+
 ### Done
 
 * Build Huffman code tables from given symbol frequencies.
