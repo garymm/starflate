@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <ranges>
 
 namespace gpu_deflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
@@ -76,8 +77,17 @@ public:
   ///
   /// @param data a pointer to the first byte of the data.
   /// @param bit_size the number of bits in the data.
-  constexpr bit_span(const std::byte* data, size_t bit_size)
+  constexpr bit_span(const std::byte* data, std::size_t bit_size)
       : data_(data), bit_size_(bit_size)
+  {}
+
+  template <std::ranges::contiguous_range R>
+    requires std::ranges::borrowed_range<R>
+  // TODO: remove cppcoreguidelines-pro-type-member-init once
+  // https://reviews.llvm.org/D157367 in our toolchain.
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,bugprone-forwarding-reference-overload)
+  constexpr bit_span(R&& r)
+      : bit_span(std::ranges::data(r), std::ranges::size(r) * CHAR_BIT)
   {}
 
   [[nodiscard]]

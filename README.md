@@ -36,19 +36,22 @@ Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/setting
 ### Done
 
 * Build Huffman code tables from given symbol frequencies.
+* Huffman decoding with C++ std lib.
 
 ### TODO
 
-* Implement Huffman decompression with C++ std lib.
-* Set up bazel build of OpenSYCL with OpenMP.
-* Port Huffman decompression to SYCL.
-* Implement LZ77 with C++ std lib.
-* Port LZ77 to SYCL.
-* Implement Deflate decompression.
-* Try building it for a GPU.
+* Get SYCL building with bazel. Already have OpenSYCL building for CPU only [here](https://github.com/garymm/xpu).
+  Would be nicer to use [intel's LLVM](https://github.com/intel/llvm) which supports lots of GPUs.
+* (maybe?) Implement LZ77 with C++ std lib.
+* Implement Deflate decompression with C++ std lib.
+* Port Deflate to SYCL.
+* Benchmark it on CPU.
+* Build system work to get it to run on GPU.
+* Benchmark it on GPU.
 
 ## References
 
 * [DEFLATE Compressed Data Format Specification version 1.3](https://tools.ietf.org/html/rfc1951)
+* [pyflate](https://github.com/garymm/pyflate)
 * [An Explanation of the Deflate Algorithm](https://zlib.net/feldspar.html)
 * [LZ77 Specification](https://www.cs.duke.edu/courses/spring03/cps296.5/papers/ziv_lempel_1977_universal_algorithm.pdf)
