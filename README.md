@@ -33,7 +33,7 @@ Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/setting
 
 ## Status
 
-![CI](https://github.com/garymm/starflate/actions/workflows/check.yml/badge.svg) [![codecov](https://codecov.io/gh/garymm/starflate/graph/badge.svg?token=PGIMUPMNIF)](https://codecov.io/gh/garymm/starflate)
+[![CI](https://github.com/garymm/starflate/actions/workflows/check.yml/badge.svg)](https://github.com/garymm/starflate/actions/workflows/check.yml) [![codecov](https://codecov.io/gh/garymm/starflate/graph/badge.svg?token=PGIMUPMNIF)](https://codecov.io/gh/garymm/starflate)
 
 ### Done
 
@@ -57,4 +57,5 @@ Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/setting
 * [Simple-DEFLATE-decompressor](https://github.com/nayuki/Simple-DEFLATE-decompressor)
 * [pyflate](https://github.com/garymm/pyflate)
 * [An Explanation of the Deflate Algorithm](https://zlib.net/feldspar.html)
-* [LZ77 Specification](https://www.cs.duke.edu/courses/spring03/cps296.5/papers/ziv_lempel_1977_universal_algorithm.pdf)
+* [Parallel lossless compression using GPUs](https://on-demand.gputechconf.com/gtc/2014/presentations/S4459-parallel-lossless-compression-using-gpus.pdf)
+* [GPU implementations of deflate encoding and decoding](https://doi.org/10.1002/cpe.7454)
