@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "lldb decompress_test",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/src/test/decompress_test",
+            "cwd": "${workspaceFolder}",
+            // necessary for debugging binaries built by bazel
+            // see:
+            // https://github.com/vadimcn/codelldb/wiki/Breakpoints-are-not-getting-hit#source-file-path-mismatch
+            "sourceMap": {
+                "/proc/self/cwd": "${workspaceFolder}"
+            },
+            "preLaunchTask": "build-debug",
+        }
+    ]
+}

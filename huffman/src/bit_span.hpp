@@ -2,11 +2,14 @@
 #include "huffman/src/bit.hpp"
 #include "huffman/src/detail/iterator_interface.hpp"
 
+#include <bit>
 #include <bitset>
 #include <cassert>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <iostream>
 #include <iterator>
 #include <limits>
 #include <ranges>
@@ -113,5 +116,58 @@ public:
   {
     return iterator{*this, bit_offset_ + bit_size_};
   };
+
+  template <class T>
+  constexpr auto pop() -> T
+  {
+    assert(
+        bit_size_ >= sizeof(T) * CHAR_BIT and
+        "bit_span has insufficient "
+        "remaining bits to pop");
+    assert(bit_offset_ == 0 and "bit_span must be byte aligned to pop");
+    T res;
+    std::memcpy(&res, data_, sizeof(T));
+    std::advance(data_, sizeof(T));
+    bit_size_ -= sizeof(T) * CHAR_BIT;
+    if constexpr (std::endian::native == std::endian::big) {
+      res = std::byteswap(res);
+    }
+    return res;
+  }
+
+  constexpr auto pop_8() -> std::uint8_t { return pop<std::uint8_t>(); }
+
+  constexpr auto pop_16() -> std::uint16_t { return pop<std::uint16_t>(); }
+
+  /// Consumes the given number of bits. Basically advances the start of the
+  /// view.
+  ///
+  /// @pre n <= std::ranges::size(this)
+  constexpr auto consume(std::size_t n) -> void
+  {
+    assert(n <= bit_size_);
+    bit_size_ -= n;
+    bit_offset_ += n % CHAR_BIT;
+    if (bit_offset_ == CHAR_BIT) {
+      bit_offset_ = 0;
+      n += CHAR_BIT;
+    }
+    std::advance(data_, n / CHAR_BIT);
+  }
+
+  /// Consumes bits until the start is aligned to a byte boundary.
+  constexpr auto consume_to_byte_boundary() -> void
+  {
+    if (bit_offset_) {
+      consume(CHAR_BIT - bit_offset_);
+    }
+  }
+
+  /// Returns pointer to the start of the zeroth byte of data.
+  [[nodiscard]]
+  constexpr auto data() const -> const std::byte*
+  {
+    return data_;
+  }
 };
 }  // namespace starflate::huffman

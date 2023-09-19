@@ -92,4 +92,61 @@ auto main() -> int
       huffman::bit_span{data.begin(), bit_size, bit_offset};
     }));
   } | std::vector<std::uint8_t>{8, 9, 10};  // NOLINT(readability-magic-numbers)
+
+  test("consume") = [] {
+    // NOLINTBEGIN(readability-magic-numbers)
+    static constexpr std::array data{
+        std::byte{0b10101010}, std::byte{0b01010101}};
+    huffman::bit_span span{data.data(), data.size() * CHAR_BIT};
+    expect(*span.begin() == 1_b);
+    expect(span.data() == data.data());
+    // should be a no-op now.
+    span.consume_to_byte_boundary();
+    expect(*span.begin() == 1_b);
+    expect(span.data() == data.data());
+
+    span.consume(1);
+    expect(*span.begin() == 0_b);
+    expect(span.data() == data.data());
+
+    span.consume(1);
+    expect(*span.begin() == 1_b);
+    expect(span.data() == data.data());
+
+    span.consume_to_byte_boundary();
+    expect(*span.begin() == 0_b);
+    expect(span.data() != data.data());
+    span.consume(2);
+    expect(*span.begin() == 0_b);
+    span.consume(5);
+    expect(*span.begin() == 1_b);
+
+    span.consume(1);
+    // span is now empty. Accssing .begin() would be undefined behavior.
+
+    // consume past the end
+    expect(aborts([&] { span.consume(1); }));
+    // NOLINTEND(readability-magic-numbers)
+  };
+
+  test("pop") = [] {
+    // NOLINTBEGIN(readability-magic-numbers)
+    static constexpr std::array data{
+        std::byte{0b10101010}, std::byte{0b01010101}, std::byte{0b11111111}};
+    huffman::bit_span span{data.data(), data.size() * CHAR_BIT};
+    std::uint16_t got_16{span.pop_16()};
+    std::uint16_t expected_16{0b0101010110101010};
+    expect(got_16 == expected_16)
+        << "got: " << got_16 << " expected: " << expected_16;
+
+    expect(aborts([&] { span.pop_16(); }));
+
+    std::uint8_t got_8{span.pop_8()};
+    std::uint8_t expected_8{0b11111111};
+    expect(got_8 == expected_8)
+        << "got: " << got_8 << " expected: " << expected_8;
+
+    expect(aborts([&] { span.pop_8(); }));
+    // NOLINTEND(readability-magic-numbers)
+  };
 }
