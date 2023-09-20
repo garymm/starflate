@@ -15,9 +15,8 @@ namespace starflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
 class bit_span
 {
-
   const std::byte* data_;
-  size_t bit_size_;
+  std::size_t bit_size_;
 
 public:
   /// An iterator over the bits in a bit_span.
@@ -25,7 +24,7 @@ public:
   {
   private:
     const bit_span* parent_;
-    size_t offset_;
+    std::size_t offset_;
 
   public:
     using difference_type = std::ptrdiff_t;
@@ -43,13 +42,11 @@ public:
 
     constexpr auto operator*() const -> reference
     {
-      // TODO: switch to std::bitset once GCC's
-      // std::bitset<_Nb>::reference::operator bool() is constexpr
-      const std::uint8_t byte{
+      const auto byte = std::bitset<CHAR_BIT>{
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          static_cast<std::uint8_t>(parent_->data_[offset_ / CHAR_BIT])};
-      // most significant bit first
-      return bit{bool(byte & 1 << (CHAR_BIT - 1 - (offset_ % CHAR_BIT)))};
+          static_cast<unsigned long long>(parent_->data_[offset_ / CHAR_BIT])};
+
+      return bit{byte[CHAR_BIT - 1 - (offset_ % CHAR_BIT)]};
     }
 
     constexpr auto operator+=(difference_type n) -> iterator&
