@@ -13,7 +13,7 @@
 
 namespace starflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
-class bit_span
+class bit_span : public std::ranges::view_interface<bit_span>
 {
   const std::byte* data_;
   std::size_t bit_size_;
@@ -53,7 +53,7 @@ public:
     {
       const auto newOffset = static_cast<difference_type>(offset_) + n;
       assert(newOffset >= 0);
-      offset_ = static_cast<size_t>(newOffset);
+      offset_ = static_cast<std::size_t>(newOffset);
       return *this;
     }
 
