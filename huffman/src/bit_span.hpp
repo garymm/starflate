@@ -17,6 +17,7 @@ class bit_span : public std::ranges::view_interface<bit_span>
 {
   const std::byte* data_;
   std::size_t bit_size_;
+  std::uint8_t bit_offset_;  // always less than CHAR_BIT
 
 public:
   /// An iterator over the bits in a bit_span.
@@ -34,7 +35,7 @@ public:
     using pointer = void;
 
     iterator() = default;
-    constexpr iterator(const bit_span& parent, size_t offset)
+    constexpr iterator(const bit_span& parent, std::size_t offset)
         : parent_(&parent), offset_(offset)
     {
       assert(offset_ <= std::numeric_limits<difference_type>::max());
@@ -74,9 +75,21 @@ public:
   ///
   /// @param data a pointer to the first byte of the data.
   /// @param bit_size the number of bits in the data.
-  constexpr bit_span(const std::byte* data, std::size_t bit_size)
-      : data_(data), bit_size_(bit_size)
-  {}
+  /// @param bit_offset bit offset of data, allowing a non-byte aligned range
+  ///
+  /// @pre offset < CHAR_BIT
+  ///
+  // NOLINTBEGIN(bugprone-easily-swappable-parameters)
+  constexpr bit_span(
+      const std::byte* data, std::size_t bit_size, std::uint8_t bit_offset = {})
+      : data_{data}, bit_size_{bit_size}, bit_offset_{bit_offset}
+  // NOLINTEND(bugprone-easily-swappable-parameters)
+  {
+    assert(
+        bit_offset < CHAR_BIT and
+        "bit offset exceeds number of bits in a "
+        "byte");
+  }
 
   template <std::ranges::contiguous_range R>
     requires std::ranges::borrowed_range<R>
@@ -90,12 +103,12 @@ public:
   [[nodiscard]]
   constexpr auto begin() const -> iterator
   {
-    return iterator{*this, 0};
+    return iterator{*this, bit_offset_};
   };
   [[nodiscard]]
   constexpr auto end() const -> iterator
   {
-    return iterator{*this, bit_size_};
+    return iterator{*this, bit_offset_ + bit_size_};
   };
 };
 }  // namespace starflate::huffman
