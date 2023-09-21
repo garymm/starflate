@@ -30,7 +30,6 @@ namespace starflate::huffman::detail {
 template <class D>
 struct iterator_interface
 {
-
   template <class I = D>
   constexpr auto operator->() const -> typename I::pointer
   {
@@ -75,7 +74,7 @@ struct iterator_interface
   constexpr auto
   operator[](typename I::difference_type n) const -> typename I::reference
   {
-    return *(*this + n);
+    return *(static_cast<const I&>(*this) + n);
   }
 
   template <std::same_as<D> I>
