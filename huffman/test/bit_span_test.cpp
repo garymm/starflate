@@ -6,6 +6,7 @@
 #include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 auto main() -> int
 {
@@ -17,8 +18,7 @@ auto main() -> int
   using namespace huffman::literals;
 
   test("basic") = [] {
-    static constexpr std::array<std::byte, 2> data{
-        std::byte{0b10101010}, std::byte{0xff}};
+    static constexpr std::array data{std::byte{0b10101010}, std::byte{0xff}};
     // leave off the last bit of the last byte
     constexpr huffman::bit_span span{data.data(), (data.size() * CHAR_BIT) - 1};
     constexpr std::string_view expected = "101010101111111";
@@ -56,4 +56,40 @@ auto main() -> int
 
     // NOLINTEND(readability-magic-numbers)
   };
+
+  test("usable with non byte-aligned data") = [] {
+    static constexpr auto data =
+        std::array{std::byte{0b10101010}, std::byte{0xff}};
+
+    static constexpr auto bit_size = 7;
+    static constexpr auto bit_offset = 3;
+    constexpr auto bs = huffman::bit_span{data.begin(), bit_size, bit_offset};
+
+    // NOLINTBEGIN(readability-magic-numbers)
+
+    // from first byte
+    static_assert(bs[0] == 0_b);
+    static_assert(bs[1] == 1_b);
+    static_assert(bs[2] == 0_b);
+    static_assert(bs[3] == 1_b);
+    static_assert(bs[4] == 0_b);
+
+    // from second byte
+    expect(huffman::bit_span{data.begin(), bit_size, bit_offset}[5] == 1_b);
+    expect(huffman::bit_span{data.begin(), bit_size, bit_offset}[6] == 1_b);
+
+    // NOLINTEND(readability-magic-numbers)
+  };
+
+  using ::boost::ut::operator|;
+
+  test("aborts if bit offset too large") = [](auto bit_offset) {
+    static constexpr auto data =
+        std::array{std::byte{0b10101010}, std::byte{0xff}};
+
+    expect(aborts([&] {
+      static constexpr auto bit_size = 7;
+      huffman::bit_span{data.begin(), bit_size, bit_offset};
+    }));
+  } | std::vector<std::uint8_t>{8, 9, 10};  // NOLINT(readability-magic-numbers)
 }
