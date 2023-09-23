@@ -31,6 +31,16 @@ cc_test(
 )
 
 cc_test(
+    name = "table_canonicalize_test",
+    timeout = "short",
+    srcs = ["table_canonicalize_test.cpp"],
+    deps = [
+        "//huffman",
+        "@boost_ut",
+    ],
+)
+
+cc_test(
     name = "table_from_data_test",
     timeout = "short",
     srcs = ["table_from_data_test.cpp"],
