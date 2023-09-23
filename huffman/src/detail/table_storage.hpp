@@ -48,6 +48,8 @@ public:
   using base_type = table_storage_base_t<IntrusiveNode, Extent>;
   using symbol_type = typename IntrusiveNode::symbol_type;
 
+  using const_iterator = typename base_type::const_iterator;
+
   template <class R>
   constexpr table_storage(
       frequency_tag, const R& frequencies, std::optional<symbol_type> eot)
