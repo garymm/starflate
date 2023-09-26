@@ -56,6 +56,14 @@ class table
 
   constexpr auto construct_table() -> void
   {
+    using size_type = decltype(table_.size());
+
+    if (table_.size() == size_type{1}) {
+      using namespace huffman::literals;
+      static_cast<code&>(table_.front()) = 0_c;
+      return;
+    }
+
     std::ranges::sort(table_);
 
     assert(
@@ -98,6 +106,10 @@ public:
       std::reverse_iterator<
           typename detail::table_storage<node_type, Extent>::const_iterator>,
       encoding<Symbol>>;
+
+  /// Constructs an empty table
+  ///
+  table() = default;
 
   /// Constructs a `table` from a symbol-frequency mapping
   /// @tparam R sized-range of symbol-frequency 2-tuples
@@ -266,6 +278,67 @@ public:
     }
     return os;
   }
+
+  /// Update table code values to DEFLATE canonical form
+  ///
+  /// The Huffman codes used for each alphabet in the "deflate" format have two
+  /// additional rules:
+  /// * All codes of a given bit length have lexicographically consecutive
+  ///   values, in the same order as the symbols they represent;
+  /// * Shorter codes lexicographically precede longer codes.
+  ///
+  /// @see section 3.2.2 https://datatracker.ietf.org/doc/html/rfc1951
+  ///
+  /// @{
+
+  constexpr auto canonicalize() & -> table&
+  {
+    using value_type = decltype(std::declval<code>().value());
+
+    // elements are stored in reverse order, so we maintain that order
+    auto reversed = std::views::reverse(table_);
+
+    // set lexicographical order
+    std::ranges::sort(  //
+        reversed,       //
+        [](const auto& x, const auto& y) {
+          return std::pair{x.bitsize(), std::ref(x.symbol)} <
+                 std::pair{y.bitsize(), std::ref(y.symbol)};
+        });
+
+    // used to determine initial value of next_code[bits]
+    // calculated in step 2
+    auto base_code = value_type{};
+
+    // used in determining consecutive code values in step 3
+    auto next_code = code{};
+
+    // clang-format off
+    for (auto& n : reversed) {
+      assert(next_code.bitsize() <= n.bitsize());
+
+      next_code = {
+          n.bitsize(),
+          next_code.bitsize() == n.bitsize()
+              ? next_code.value() + value_type{1}                  // 3) next_code[len]++;
+              : base_code <<= (n.bitsize() - next_code.bitsize())  // 2) next_code[bits] = code; code = (...) << 1;
+      };
+
+      static_cast<code&>(n) = next_code;                           // 3) tree[n].Code = next_code[len];
+
+      ++base_code;                                                 // 2) (code + bl_count[bits-1])
+    }
+    // clang-format on
+
+    return *this;
+  }
+
+  constexpr auto canonicalize() && -> table&&
+  {
+    return std::move(canonicalize());
+  }
+
+  /// @}
 };
 
 namespace detail {
