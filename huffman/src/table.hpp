@@ -1,6 +1,6 @@
 #pragma once
 
-#include "huffman/src/detail/base_view.hpp"
+#include "huffman/src/detail/element_base_iterator.hpp"
 #include "huffman/src/detail/table_node.hpp"
 #include "huffman/src/detail/table_storage.hpp"
 
@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <expected>
 #include <functional>
+#include <iterator>
 #include <numeric>
 #include <optional>
 #include <ostream>
@@ -41,21 +42,6 @@ class table
   using node_type = detail::table_node<Symbol>;
 
   detail::table_storage<node_type, Extent> table_;
-
-  // Create a base view member to prevent a member call on the temporary view
-  // object
-  //
-  // @{
-
-  using base_view_type = std::ranges::reverse_view<detail::base_view<
-      std::ranges::ref_view<detail::table_storage<node_type, Extent>>,
-      const typename node_type::encoding_type>>;
-
-  base_view_type base_view_{detail::base_view<
-      std::ranges::ref_view<detail::table_storage<node_type, Extent>>,
-      const typename node_type::encoding_type>{std::views::all(table_)}};
-
-  // @}
 
   constexpr static auto find_node_if(auto first, auto last, auto pred)
   {
@@ -106,7 +92,12 @@ public:
 
   /// Const iterator type
   ///
-  using const_iterator = std::ranges::iterator_t<base_view_type>;
+  using const_iterator = detail::element_base_iterator<
+      // TODO: construct_table builds the table in reverse order.
+      // would be nice to fix that so we can get rid of reverse_iterator here.
+      std::reverse_iterator<
+          typename detail::table_storage<node_type, Extent>::const_iterator>,
+      encoding<Symbol>>;
 
   /// Constructs a `table` from a symbol-frequency mapping
   /// @tparam R sized-range of symbol-frequency 2-tuples
@@ -217,7 +208,7 @@ public:
   [[nodiscard]]
   constexpr auto begin() const -> const_iterator
   {
-    return base_view_.begin();
+    return const_iterator{std::make_reverse_iterator(table_.end())};
   }
 
   /// Returns an iterator past the last `encoding`
@@ -226,7 +217,7 @@ public:
   [[nodiscard]]
   constexpr auto end() const -> const_iterator
   {
-    return base_view_.end();
+    return const_iterator{std::make_reverse_iterator(table_.begin())};
   }
 
   /// Finds element with specific code within the code table
