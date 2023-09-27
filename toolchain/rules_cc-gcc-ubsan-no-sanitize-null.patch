@@ -1,0 +1,50 @@
+diff --git a/cc/defs.bzl b/cc/defs.bzl
+index a3acac7..53ee96e 100644
+--- a/cc/defs.bzl
++++ b/cc/defs.bzl
+@@ -46,6 +46,18 @@ def _add_tags(attrs, is_binary = False):
+ 
+     return attrs
+ 
++def _gcc_no_sanitize_null(attrs):
++    attrs["copts"] = (
++        attrs.get("copts", []) +
++                              select({
++                                  "@starflate//toolchain:gcc_with_ubsan": [
++                                      "-fno-sanitize=null,returns-nonnull-attribute,nonnull-attribute",
++                                  ],
++                                  "//conditions:default": [],
++                              })
++    )
++    return attrs
++
+ def cc_binary(**attrs):
+     """Bazel cc_binary rule.
+ 
+@@ -56,7 +68,7 @@ def cc_binary(**attrs):
+     """
+ 
+     # buildifier: disable=native-cc
+-    native.cc_binary(**_add_tags(attrs, True))
++    native.cc_binary(**_add_tags(_gcc_no_sanitize_null(attrs), True))
+ 
+ def cc_test(**attrs):
+     """Bazel cc_test rule.
+@@ -68,7 +80,7 @@ def cc_test(**attrs):
+     """
+ 
+     # buildifier: disable=native-cc
+-    native.cc_test(**_add_tags(attrs, True))
++    native.cc_test(**_add_tags(_gcc_no_sanitize_null(attrs), True))
+ 
+ def cc_library(**attrs):
+     """Bazel cc_library rule.
+@@ -80,7 +92,7 @@ def cc_library(**attrs):
+     """
+ 
+     # buildifier: disable=native-cc
+-    native.cc_library(**_add_tags(attrs))
++    native.cc_library(**_add_tags(_gcc_no_sanitize_null(attrs)))
+ 
+ def cc_import(**attrs):
+     """Bazel cc_import rule.
