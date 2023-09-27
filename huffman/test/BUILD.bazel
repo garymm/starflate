@@ -21,9 +21,9 @@ cc_test(
 )
 
 cc_test(
-    name = "table_from_frequencies_test",
+    name = "table_canonicalize_test",
     timeout = "short",
-    srcs = ["table_from_frequencies_test.cpp"],
+    srcs = ["table_canonicalize_test.cpp"],
     deps = [
         "//huffman",
         "@boost_ut",
@@ -31,9 +31,19 @@ cc_test(
 )
 
 cc_test(
-    name = "table_canonicalize_test",
+    name = "table_find_code_test",
     timeout = "short",
-    srcs = ["table_canonicalize_test.cpp"],
+    srcs = ["table_find_code_test.cpp"],
+    deps = [
+        "//huffman",
+        "@boost_ut",
+    ],
+)
+
+cc_test(
+    name = "table_from_frequencies_test",
+    timeout = "short",
+    srcs = ["table_from_frequencies_test.cpp"],
     deps = [
         "//huffman",
         "@boost_ut",
@@ -61,9 +71,9 @@ cc_test(
 )
 
 cc_test(
-    name = "table_find_code_test",
+    name = "table_from_symbol_bitsize_test",
     timeout = "short",
-    srcs = ["table_find_code_test.cpp"],
+    srcs = ["table_from_symbol_bitsize_test.cpp"],
     deps = [
         "//huffman",
         "@boost_ut",

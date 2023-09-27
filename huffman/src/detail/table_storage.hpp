@@ -3,6 +3,7 @@
 #include "huffman/src/code.hpp"
 #include "huffman/src/detail/static_vector.hpp"
 #include "huffman/src/encoding.hpp"
+#include "huffman/src/utility.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -13,18 +14,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace starflate::huffman {
-
-/// Disambiguation tag to specify a table is constructed with a code-symbol
-///    mapping
-///
-struct table_contents_tag
-{
-  explicit table_contents_tag() = default;
-};
-inline constexpr auto table_contents = table_contents_tag{};
-
-namespace detail {
+namespace starflate::huffman::detail {
 
 struct frequency_tag
 {
@@ -55,7 +45,6 @@ public:
   template <class R>
   constexpr table_storage(
       frequency_tag, const R& frequencies, std::optional<symbol_type> eot)
-      : base_type{}
   {
     base_type::reserve(
         std::ranges::size(frequencies) + std::size_t{eot.has_value()});
@@ -74,7 +63,6 @@ public:
   template <class R>
   constexpr table_storage(
       data_tag, const R& data, std::optional<symbol_type> eot)
-      : base_type{}
   {
     if (eot) {
       base_type::emplace_back(*eot, 1UZ);
@@ -97,7 +85,7 @@ public:
   }
 
   template <class R>
-  constexpr table_storage(table_contents_tag, const R& map) : base_type{}
+  constexpr table_storage(table_contents_tag, const R& map)
   {
     const auto as_code = [](auto& node) -> auto& {
       return static_cast<code&>(node);
@@ -116,9 +104,6 @@ public:
       as_symbol(*it) = s;
       ++it;
     }
-
-    assert(std::ranges::unique(*this, {}, as_code).empty());
-    assert(std::ranges::unique(*this, {}, as_symbol).empty());
   }
 
   using base_type::begin;
@@ -131,5 +116,4 @@ public:
   using base_type::size;
 };
 
-}  // namespace detail
-}  // namespace starflate::huffman
+}  // namespace starflate::huffman::detail
