@@ -18,13 +18,15 @@ auto main() -> int
 
   test("code table constructible from code-symbol mapping") = [] {
     const auto t = huffman::table<char>{
+        // clang-format off
         huffman::table_contents,
-        {{00000_c, '\4'},
-         {00001_c, 'x'},
-         {0001_c, 'q'},
-         {001_c, 'n'},
+        {{1_c, 'e'},
          {01_c, 'i'},
-         {1_c, 'e'}}};
+         {001_c, 'n'},
+         {0001_c, 'q'},
+         {00001_c, 'x'},
+         {00000_c, '\4'}}};
+    // clang-format on
 
     auto ss = std::stringstream{};
     ss << t;
@@ -35,8 +37,8 @@ auto main() -> int
         "2\t01\t1\t`i`\n"
         "3\t001\t1\t`n`\n"
         "4\t0001\t1\t`q`\n"
-        "5\t00000\t0\t`\4`\n"
-        "5\t00001\t1\t`x`\n";
+        "5\t00001\t1\t`x`\n"
+        "5\t00000\t0\t`\4`\n";
 
     expect(table == ss.str()) << ss.str();
   };
@@ -47,26 +49,24 @@ auto main() -> int
     const auto t1 =  // clang-format off
       huffman::table<char>{
         huffman::table_contents,
-        {{00000_c, '\4'},
-         {00001_c, 'x'},
-         {0001_c,  'q'},
-         {001_c,   'n'},
+        {{1_c,     'e'},
          {01_c,    'i'},
-         {1_c,     'e'}}
-      };
+         {001_c,   'n'},
+         {0001_c,  'q'},
+         {00001_c, 'x'},
+         {00000_c, '\4'}}};
     // clang-format on
 
     const auto t2 =  // clang-format off
       huffman::table<char>{
         huffman::table_contents,
         std::vector{
-            std::tuple{00000_c, '\4'},
-                      {00001_c, 'x'},
-                      {0001_c,  'q'},
-                      {001_c,   'n'},
+            std::tuple{1_c,     'e'},
                       {01_c,    'i'},
-                      {1_c,     'e'}}
-      };
+                      {001_c,   'n'},
+                      {0001_c,  'q'},
+                      {00001_c, 'x'},
+                      {00000_c, '\4'}}};
     // clang-format on
 
     expect(std::ranges::equal(t1, t2));
@@ -77,26 +77,24 @@ auto main() -> int
     const auto t1 =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{00000_c, '\4'},
-                  {00001_c, 'x'},
-                  {0001_c,  'q'},
-                  {001_c,   'n'},
+        {std::pair{1_c,     'e'},
                   {01_c,    'i'},
-                  {1_c,     'e'}}
-      };
+                  {001_c,   'n'},
+                  {0001_c,  'q'},
+                  {00001_c, 'x'},
+                  {00000_c, '\4'}}};
     // clang-format on
 
     const auto t2 =  // clang-format off
       huffman::table{
         huffman::table_contents,
         std::vector{
-            std::tuple{00000_c, '\4'},
-                      {00001_c, 'x'},
-                      {0001_c,  'q'},
-                      {001_c,   'n'},
+            std::tuple{1_c,     'e'},
                       {01_c,    'i'},
-                      {1_c,     'e'}}
-      };
+                      {001_c,   'n'},
+                      {0001_c,  'q'},
+                      {00001_c, 'x'},
+                      {00000_c, '\4'}}};
       // clang-format off
 
     expect(std::ranges::equal(t1, t2));
@@ -106,25 +104,23 @@ auto main() -> int
     static constexpr auto t1 = // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{00000_c, '\4'},
-                  {00001_c, 'x'},
-                  {0001_c,  'q'},
-                  {001_c,   'n'},
+        {std::pair{1_c,     'e'},
                   {01_c,    'i'},
-                  {1_c,     'e'}}
-      };
+                  {001_c,   'n'},
+                  {0001_c,  'q'},
+                  {00001_c, 'x'},
+                  {00000_c, '\4'}}};
     // clang-format on
 
     static constexpr auto t2 =  // clang-format off
         huffman::table<char, 6>{
           huffman::table_contents,
-          {{00000_c, '\4'},
-           {00001_c, 'x'},
-           {0001_c,  'q'},
-           {001_c,   'n'},
+          {{1_c,     'e'},
            {01_c,    'i'},
-           {1_c,     'e'}}
-        };
+           {001_c,   'n'},
+           {0001_c,  'q'},
+           {00001_c, 'x'},
+           {00000_c, '\4'}}};
     // clang-format on
 
     expect(std::ranges::equal(t1, t2));
@@ -134,13 +130,13 @@ auto main() -> int
     expect(aborts([] {  // clang-format off
       huffman::table{
           huffman::table_contents,
-          {std::pair{00000_c, '\4'},
-                    {00001_c, 'x'},
-                    {0001_c,  'q'},
-                    {0001_c,  'g'},
-                    {001_c,   'n'},
+          {std::pair{1_c,     'e'},
                     {01_c,    'i'},
-                    {1_c,     'e'}}};
+                    {001_c,   'n'},
+                    {0001_c,  'g'},
+                    {0001_c,  'q'},
+                    {00001_c, 'x'},
+                    {00000_c, '\4'}}};
       // clang-format on
     }));
   };
@@ -149,13 +145,13 @@ auto main() -> int
     expect(aborts([] {  // clang-format off
       huffman::table{
           huffman::table_contents,
-          {std::pair{00000_c, '\4'},
-                    {00001_c, 'x'},
-                    {0001_c,  'q'},
-                    {0000_c,  'q'},
-                    {001_c,   'n'},
+          {std::pair{1_c,     'e'},
                     {01_c,    'i'},
-                    {1_c,     'e'}}};
+                    {001_c,   'n'},
+                    {0000_c,  'q'},
+                    {0001_c,  'q'},
+                    {00001_c, 'x'},
+                    {00000_c, '\4'}}};
       // clang-format on
     }));
   };

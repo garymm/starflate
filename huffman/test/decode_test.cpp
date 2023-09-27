@@ -3,11 +3,9 @@
 #include <boost/ut.hpp>
 
 #include <array>
-#include <climits>
 #include <cstddef>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 auto main() -> int
 {
@@ -19,7 +17,7 @@ auto main() -> int
 
   test("basic") = [] {
     // encoded data from dahuffman readme.rst, but in hex.
-    constexpr std::array<std::byte, 6> encoded_bytes = {
+    constexpr std::array encoded_bytes = {
         std::byte{0x86},
         std::byte{0x7c},
         std::byte{0x25},
@@ -31,12 +29,12 @@ auto main() -> int
     static constexpr auto code_table =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{00000_c, eot},
-                  {00001_c, 'x'},
-                  {0001_c,  'q'},
-                  {001_c,   'n'},
+        {std::pair{1_c,     'e'},
                   {01_c,    'i'},
-                  {1_c,     'e'}}
+                  {001_c,   'n'},
+                  {0001_c,  'q'},
+                  {00001_c, 'x'},
+                  {00000_c, eot}}
       };  // clang-format on
 
     constexpr std::array expected = {

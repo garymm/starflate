@@ -117,8 +117,6 @@ public:
       ++it;
     }
 
-    std::ranges::sort(*this, std::ranges::greater{}, as_code);
-
     assert(std::ranges::unique(*this, {}, as_code).empty());
     assert(std::ranges::unique(*this, {}, as_symbol).empty());
   }
@@ -127,6 +125,7 @@ public:
   using base_type::cbegin;
   using base_type::cend;
   using base_type::data;
+  using base_type::empty;
   using base_type::end;
   using base_type::front;
   using base_type::size;

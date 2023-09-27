@@ -44,9 +44,19 @@ class table
 
   detail::table_storage<node_type, Extent> table_;
 
-  constexpr static auto find_node_if(auto first, auto last, auto pred)
+  template <std::unsigned_integral U>
+  static constexpr auto to_index(U uint)
   {
-    for (; first != last; first = first->next()) {
+    using S = std::ranges::range_difference_t<decltype(table_)>;
+
+    assert(std::cmp_less_equal(uint, std::numeric_limits<S>::max()));
+    return static_cast<S>(uint);
+  }
+
+  template <std::forward_iterator I, std::indirect_unary_predicate<I> P>
+  constexpr static auto find_node_if(I first, I last, P pred)
+  {
+    for (; first != last; first += to_index(first->node_size())) {
       if (pred(*first)) {
         break;
       }
@@ -55,9 +65,37 @@ class table
     return first;
   }
 
+  constexpr auto encode_symbols() -> void
+  {
+    // precondition, audit
+    assert(std::ranges::is_sorted(table_));
+
+    const auto total_size = table_.size();
+    auto first = table_.begin();
+    const auto last = table_.end();
+
+    while (first->node_size() != total_size) {
+      join(first[0], first[to_index(first->node_size())]);
+
+      const auto has_higher_freq = [f = first->frequency()](const auto& n) {
+        return n.frequency() > f;
+      };
+
+      auto lower = first + to_index(first->node_size());
+      auto upper = find_node_if(lower, last, has_higher_freq);
+
+      // re-sort after creating a new internal node
+      std::rotate(first, lower, upper);
+    }
+  }
+
   constexpr auto construct_table() -> void
   {
     using size_type = decltype(table_.size());
+
+    if (table_.empty()) {
+      return;
+    }
 
     if (table_.size() == size_type{1}) {
       using namespace huffman::literals;
@@ -67,27 +105,31 @@ class table
 
     std::ranges::sort(table_);
 
+    // precondition
     assert(
         std::ranges::unique(
-            table_, [](auto& x, auto& y) { return x.symbol == y.symbol; })
+            table_, {}, [](const auto& elem) { return elem.symbol; })
             .empty() and
-        "`frequencies` cannot contain duplicate symbols");
+        "a `table` cannot contain duplicate symbols");
 
-    while (table_.front().node_size() != table_.size()) {
-      table_.front().join_with_next();
+    const auto frequencies = std::views::transform(
+        table_, [](const auto& elem) { return elem.frequency(); });
+    [[maybe_unused]] const auto total_freq =
+        std::accumulate(std::cbegin(frequencies), std::cend(frequencies), 0UZ);
 
-      const auto last = table_.data() + table_.size();
-      const auto has_higher_freq =
-          [f = table_.front().frequency()](const auto& n) {
-            return n.frequency() > f;
-          };
+    encode_symbols();
 
-      auto lower = table_.front().next();
-      auto upper = find_node_if(lower, last, has_higher_freq);
+    // postcondition
+    assert(total_freq == table_.front().frequency());
 
-      // re-sort after creating a new internal node
-      std::rotate(&table_.front(), lower, upper);
-    }
+    // Implicit construction of the Huffman tree results in the least frequent
+    // symbols at the beginning (largest bitsize) and most frequent at the end
+    // (smallest bitsize). See details in `table_node.hpp` for how this is
+    // represented.
+    //
+    // Reversing the elements allows code search to start with the symbols with
+    // the smallest bitsize.
+    std::ranges::reverse(table_);
   }
 
   constexpr auto set_skip_fields() -> void
@@ -96,7 +138,7 @@ class table
 
     const node_type* prev{};
 
-    for (auto& elem : table_) {
+    for (auto& elem : std::views::reverse(table_)) {
       const auto s =
           skip_type{1} +
           (prev and (elem.bitsize() == prev->bitsize())
@@ -121,10 +163,7 @@ public:
   /// Const iterator type
   ///
   using const_iterator = detail::element_base_iterator<
-      // TODO: construct_table builds the table in reverse order.
-      // would be nice to fix that so we can get rid of reverse_iterator here.
-      std::reverse_iterator<
-          typename detail::table_storage<node_type, Extent>::const_iterator>,
+      typename detail::table_storage<node_type, Extent>::const_iterator,
       encoding<Symbol>>;
 
   /// Constructs an empty table
@@ -154,16 +193,7 @@ public:
   constexpr table(const R& frequencies, std::optional<symbol_type> eot)
       : table_{detail::frequency_tag{}, frequencies, eot}
   {
-    [[maybe_unused]] const auto total_freq = std::accumulate(
-        std::cbegin(frequencies),
-        std::cend(frequencies),
-        std::size_t{eot.has_value()},
-        [](auto acc, auto kv) { return acc + kv.second; });
-
     construct_table();
-
-    assert(total_freq == table_.front().frequency());
-
     set_skip_fields();
   }
 
@@ -247,7 +277,7 @@ public:
   [[nodiscard]]
   constexpr auto begin() const -> const_iterator
   {
-    return const_iterator{std::make_reverse_iterator(table_.end())};
+    return const_iterator{table_.begin()};
   }
 
   /// Returns an iterator past the last `encoding`
@@ -256,7 +286,7 @@ public:
   [[nodiscard]]
   constexpr auto end() const -> const_iterator
   {
-    return const_iterator{std::make_reverse_iterator(table_.begin())};
+    return const_iterator{table_.end()};
   }
 
   /// Finds element with specific code within the code table
@@ -337,12 +367,9 @@ public:
   {
     using value_type = decltype(std::declval<code>().value());
 
-    // elements are stored in reverse order, so we maintain that order
-    auto reversed = std::views::reverse(table_);
-
     // set lexicographical order
     std::ranges::sort(  //
-        reversed,       //
+        table_,         //
         [](const auto& x, const auto& y) {
           return std::pair{x.bitsize(), std::ref(x.symbol)} <
                  std::pair{y.bitsize(), std::ref(y.symbol)};
@@ -356,19 +383,19 @@ public:
     auto next_code = code{};
 
     // clang-format off
-    for (auto& n : reversed) {
-      assert(next_code.bitsize() <= n.bitsize());
+    for (auto& elem : table_) {
+      assert(next_code.bitsize() <= elem.bitsize());
 
       next_code = {
-          n.bitsize(),
-          next_code.bitsize() == n.bitsize()
-              ? next_code.value() + value_type{1}                  // 3) next_code[len]++;
-              : base_code <<= (n.bitsize() - next_code.bitsize())  // 2) next_code[bits] = code; code = (...) << 1;
+          elem.bitsize(),
+          next_code.bitsize() == elem.bitsize()
+              ? next_code.value() + value_type{1}                     // 3) next_code[len]++;
+              : base_code <<= (elem.bitsize() - next_code.bitsize())  // 2) next_code[bits] = code; code = (...) << 1;
       };
 
-      static_cast<code&>(n) = next_code;                           // 3) tree[n].Code = next_code[len];
+      static_cast<code&>(elem) = next_code;                           // 3) tree[n].Code = next_code[len];
 
-      ++base_code;                                                 // 2) (code + bl_count[bits-1])
+      ++base_code;                                                    // 2) (code + bl_count[bits-1])
     }
     // clang-format on
 

@@ -96,60 +96,48 @@ public:
     return init_.frequency;
   }
 
-  constexpr auto node_size() const
-  {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-    return init_.node_size;
-  }
-
-  /// Obtains the next node, with respect to node size
+  /// Distance to next internal node
   ///
-  /// Given a contiguous container of nodes, `next()` returns a pointer to
-  /// the next node, using `node_size()` to determine if `*this` is an
-  /// internal node or a leaf node. If `*this` is an internal node, (i.e.
-  /// `*this` represents a node with children) `next()` skips the appropriate
-  /// number of elements in the associated container.
+  /// Given a contiguous container of nodes, `node_size()` returns the distance
+  /// to the next internal node.
   ///
   /// | freq: 3 | freq: 1 | freq: 1 | freq: 4 | freq: 2 |
   /// | ns:   3 | ns:   1 | ns:   1 | ns:   2 | ns:   1 |
   /// ^                             ^
   /// this                          |
   ///                               |
-  /// this->next() -----------------+
+  /// next internal node -----------+
   ///
-  /// @{
-
-  constexpr auto next() -> table_node* { return this + node_size(); }
-  constexpr auto next() const -> const table_node*
+  constexpr auto node_size() const
   {
-    return this + node_size();
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    return init_.node_size;
   }
-
-  /// @}
-
   /// "Joins" two `table_node`s
+  /// @param lhs left table_node
+  /// @param rhs right table_node
+  /// @pre `&lhs + lhs.node_size() == &rhs`
   ///
-  /// Logically "join" `*this` with the next adjacent node `*next()`,
-  /// "creating" an internal node. This adds the frequency of the next node to
-  /// this node, left pads all the codes of the internal nodes of `*this` with
-  /// 0s and left pads all the code of the internal nodes of `*next()` with
-  /// 1s.
+  /// Logically "join" `lhs` with the next adjacent node `rhs` "creating" an
+  /// internal node. This adds the frequency of `rhs` to `lhs`, left pads all
+  /// the codes of the internal nodes of `lhs` with 0s and left pads all the
+  /// code of the internal nodes of `rhs` with 1s.
   ///
-  /// @pre `*this` is not `back()` of the associated container
-  ///
-  constexpr auto join_with_next() & -> void
+  friend constexpr auto join(table_node& lhs, table_node& rhs) -> void
   {
+    assert(
+        &lhs + lhs.node_size() == &rhs and "`lhs` and `rhs` are not adjacent");
+
     const auto left_pad_with = [](auto b) {
       return [b](table_node& n) { b >> static_cast<code&>(n); };
     };
 
-    std::for_each(this, next(), left_pad_with(bit{0}));
-    std::for_each(next(), next()->next(), left_pad_with(bit{1}));
+    std::for_each(&lhs, &rhs, left_pad_with(bit{0}));
+    std::for_each(&rhs, &rhs + rhs.node_size(), left_pad_with(bit{1}));
 
-    const auto& n = *next();
     // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
-    init_.frequency += n.frequency();
-    init_.node_size += n.node_size();
+    lhs.init_.frequency += rhs.frequency();
+    lhs.init_.node_size += rhs.node_size();
     // NOLINTEND(cppcoreguidelines-pro-type-union-access)
   }
 

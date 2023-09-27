@@ -83,6 +83,23 @@ auto main() -> int
 
     expect(std::ranges::equal(t1, t2));
   };
+
+  test("empty code table") = [] {
+    const auto zero = huffman::table<char, 0>{};
+
+    expect(zero.begin() == zero.end());
+  };
+
+  test("one symbol code table") = [] {
+    using namespace std::literals;
+
+    constexpr auto data = "a"sv;
+
+    const auto one = huffman::table<char, 1>{data};
+
+    expect('a' == one.begin()->symbol);
+    expect(1 == one.begin()->bitsize());
+  };
 }
 
 // NOLINTEND(readability-magic-numbers,google-build-using-namespace)
