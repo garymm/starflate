@@ -114,30 +114,43 @@ public:
     return init_.node_size;
   }
   /// "Joins" two `table_node`s
-  /// @param lhs left table_node
   /// @param rhs right table_node
-  /// @pre `&lhs + lhs.node_size() == &rhs`
+  /// @param lhs left table_node
+  /// @pre `&rhs - rhs.node_size() == &lhs`
   ///
-  /// Logically "join" `lhs` with the next adjacent node `rhs` "creating" an
-  /// internal node. This adds the frequency of `rhs` to `lhs`, left pads all
-  /// the codes of the internal nodes of `lhs` with 0s and left pads all the
-  /// code of the internal nodes of `rhs` with 1s.
+  /// Logically "join" `rhs` with the next adjacent node `lhs` "creating" an
+  /// internal node. This adds the frequency of `lhs` to `rhs`, left pads all
+  /// the codes of the internal nodes of `rhs` with 0s and left pads all the
+  /// code of the internal nodes of `lhs` with 1s.
   ///
-  friend constexpr auto join(table_node& lhs, table_node& rhs) -> void
+  /// @attention This is intended to be used with a reversed view of table
+  ///     elements.
+  ///
+  friend constexpr auto join_reversed(table_node& rhs, table_node& lhs) -> void
   {
-    assert(
-        &lhs + lhs.node_size() == &rhs and "`lhs` and `rhs` are not adjacent");
+    assert(&rhs == &lhs + rhs.node_size() and  //
+           "`rhs` and `lhs` are not adjacent");
 
     const auto left_pad_with = [](auto b) {
       return [b](table_node& n) { b >> static_cast<code&>(n); };
     };
 
-    std::for_each(&lhs, &rhs, left_pad_with(bit{0}));
-    std::for_each(&rhs, &rhs + rhs.node_size(), left_pad_with(bit{1}));
+    // reverse iterator, so lhs is one past what we want to modify, and we do
+    // want to modify rhs.
+
+    // [mid, last) contains the nodes to pad with 0
+    const auto last = &rhs + 1;
+    const auto mid = &lhs + 1;
+
+    // [first, mid) contains the nodes to pad with 1
+    const auto first = mid - static_cast<std::ptrdiff_t>(lhs.node_size());
+
+    std::for_each(mid, last, left_pad_with(bit{0}));
+    std::for_each(first, mid, left_pad_with(bit{1}));
 
     // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
-    lhs.init_.frequency += rhs.frequency();
-    lhs.init_.node_size += rhs.node_size();
+    rhs.init_.frequency += lhs.frequency();
+    rhs.init_.node_size += lhs.node_size();
     // NOLINTEND(cppcoreguidelines-pro-type-union-access)
   }
 
