@@ -95,10 +95,13 @@ public:
     requires std::ranges::borrowed_range<R>
   // TODO: remove cppcoreguidelines-pro-type-member-init once
   // https://reviews.llvm.org/D157367 in our toolchain.
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,bugprone-forwarding-reference-overload)
+  // NOLINTBEGIN(cppcoreguidelines-pro-type-member-init)
+  // lack of forward is intentional as we constrain on borrowed_range
+  // NOLINTNEXTLINE(bugprone-forwarding-reference-overload,cppcoreguidelines-missing-std-forward)
   constexpr bit_span(R&& r)
       : bit_span(std::ranges::data(r), std::ranges::size(r) * CHAR_BIT)
   {}
+  // NOLINTEND(cppcoreguidelines-pro-type-member-init)
 
   [[nodiscard]]
   constexpr auto begin() const -> iterator
