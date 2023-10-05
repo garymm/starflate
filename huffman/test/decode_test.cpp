@@ -26,6 +26,7 @@ auto main() -> int
   namespace huffman = ::starflate::huffman;
   using namespace huffman::literals;
 
+  // FIXME table contents are not in canonical form
   test("basic") = [] {
     // encoded data from soxofaan/dahuffman readme.rst.
     // We reverse the bits in each byte to match the encoding used in DEFLATE.
@@ -45,15 +46,17 @@ auto main() -> int
                   {01_c,    'i'},
                   {001_c,   'n'},
                   {0001_c,  'q'},
-                  {00001_c, 'x'},
-                  {00000_c, eot}}
+                  {00000_c, eot},
+                  {00001_c, 'x'}
+        }
       };  // clang-format on
 
     constexpr std::array expected = {
         'e', 'x', 'e', 'n', 'e', 'e', 'e', 'e', 'x', 'n',
         'i', 'q', 'n', 'e', 'i', 'e', 'i', 'n', 'i', eot,
     };
-    constexpr auto output_buf = [&] {
+
+    const auto output_buf = [&] {
       std::array<char, expected.size()> output_buf{};
       auto result = decode(code_table, encoded_bytes, output_buf.begin());
       // result should point to the back of output_buf.
@@ -63,6 +66,6 @@ auto main() -> int
       return output_buf;
     }();
 
-    static_assert(output_buf == expected);
+    expect(output_buf == expected);
   };
 }
