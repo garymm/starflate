@@ -2,6 +2,7 @@
 
 #include "huffman/src/bit.hpp"
 
+#include <bit>
 #include <cassert>
 #include <climits>
 #include <concepts>
@@ -35,10 +36,8 @@ public:
     // NOLINTNEXTLINE(readability-magic-numbers)
     static_assert(CHAR_BIT == 8U, "everything assumes 8 bits per byte");
 
-    // TODO: use std::countl_zero when available in GCC and Clang.
-    // https://en.cppreference.com/w/cpp/numeric/countl_zero
     [[maybe_unused]] const auto msb =
-        64UZ - (value ? std::size_t(__builtin_clzll(value)) : 64UZ);
+        64UZ - static_cast<std::size_t>(std::countl_zero(value));
     assert(msb <= std::size_t{bitsize} and "`value` exceeds `bitsize`");
   }
 
