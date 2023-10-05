@@ -19,9 +19,6 @@ Checks: >
     # short names are fine for short lifetimes,
     -readability-identifier-length,
 
-    # allow bool conversions like `int x = 1; if (x)`,
-    -readability-implicit-bool-conversion,
-
     # allow unused variables to be unnamed,
     -readability-named-parameter,
 
@@ -59,6 +56,10 @@ CheckOptions:
       value: true
     - key: performance-move-const-arg.CheckTriviallyCopyableMove
       value: false
+    - key: readability-implicit-bool-conversion.AllowIntegerConditions
+      value : true
+    - key: readability-implicit-bool-conversion.AllowPointerConditions
+      value : true
 
 # only lint files coming from this project
 HeaderFilterRegex: '__main__/'

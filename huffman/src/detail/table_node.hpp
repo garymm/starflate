@@ -38,13 +38,39 @@ namespace starflate::huffman::detail {
 ///
 /// After completion of the Huffman tree, the encoding for all symbols is
 /// obtained by iterating over the associated container's elements and
-/// obtained the underlying `encoding` for each element.
+/// obtaining the underlying `encoding` for each element.
+///
+/// Additionally on completion of the Huffman tree, encodings (as well the
+/// parent node types) are ordered by symbol bitsize; and table node replaces
+/// use of `frequency` and `node_size` with a `skip` field. This skip field
+/// provides the distance to the next group of symbols with a larger bitsize.
+///
+/// | skip: 1 | skip: 2 | skip: 1 | skip: 2 | skip: 1 |
+/// |         |         |         |         |         |
+/// | sym:  A | sym:  B | sym:  C | sym:  D | sym:  E |
+/// | bs:   1 | bs :  2 | bs :  2 | bs :  3 | bs :  3 |
 ///
 template <class Symbol>
 class table_node : public encoding<Symbol>
 {
-  std::size_t frequency_{};
-  std::size_t node_size_{};
+  // Data used during initialization of a table to represent a tree
+  struct Init
+  {
+    std::size_t frequency{};
+    std::size_t node_size{};
+  };
+
+  // Data used during lookup
+  struct Decode
+  {
+    std::size_t skip{};
+  };
+
+  union
+  {
+    Init init_;
+    Decode decode_;
+  };
 
 public:
   using encoding_type = encoding<Symbol>;
@@ -52,17 +78,29 @@ public:
 
   /// Construct an "empty" intrusive node
   ///
-  table_node() = default;
+  constexpr table_node() : init_{} {}
 
   /// Construct a leaf node for a symbol and its frequency
   ///
   constexpr table_node(symbol_type sym, std::size_t freq)
-      : encoding_type{sym}, frequency_{freq}, node_size_{1UZ}
+      : encoding_type{sym}, init_{.frequency = freq, .node_size = 1UZ}
   {}
 
-  constexpr auto frequency() const { return frequency_; }
+  /// Initialization phase member functions
+  ///
+  /// @{
 
-  constexpr auto node_size() const { return node_size_; }
+  constexpr auto frequency() const
+  {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    return init_.frequency;
+  }
+
+  constexpr auto node_size() const
+  {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    return init_.node_size;
+  }
 
   /// Obtains the next node, with respect to node size
   ///
@@ -109,8 +147,10 @@ public:
     std::for_each(next(), next()->next(), left_pad_with(bit{1}));
 
     const auto& n = *next();
-    frequency_ += n.frequency();
-    node_size_ += n.node_size();
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
+    init_.frequency += n.frequency();
+    init_.node_size += n.node_size();
+    // NOLINTEND(cppcoreguidelines-pro-type-union-access)
   }
 
   [[nodiscard]]
@@ -131,6 +171,37 @@ public:
   {
     return (lhs <=> rhs) == 0;
   }
+
+  /// @}
+
+  /// Decode phase member functions
+  ///
+  /// @{
+
+  constexpr auto set_skip(std::size_t n) -> void
+  {
+    // https://github.com/llvm/llvm-project/issues/57669
+#if __clang__
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    init_.node_size = n;
+#else
+    decode_ = {.skip = n};
+#endif
+  }
+
+  /// Returns the number of elements to advance to a node with a larger bitsize.
+  [[nodiscard]]
+  constexpr auto skip() const -> std::size_t
+  {
+    // https://github.com/llvm/llvm-project/issues/57669
+#if __clang__
+    return node_size();
+#else
+    return decode_.skip;
+#endif
+  }
+
+  /// @}
 };
 
 }  // namespace starflate::huffman::detail

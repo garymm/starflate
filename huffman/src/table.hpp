@@ -11,6 +11,7 @@
 #include <expected>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <optional>
 #include <ostream>
@@ -89,6 +90,25 @@ class table
     }
   }
 
+  constexpr auto set_skip_fields() -> void
+  {
+    using skip_type = decltype(std::declval<node_type>().skip());
+
+    const node_type* prev{};
+
+    for (auto& elem : table_) {
+      const auto s =
+          skip_type{1} +
+          (prev and (elem.bitsize() == prev->bitsize())
+               ? prev->skip()
+               : skip_type{});
+
+      elem.set_skip(s);
+
+      prev = &elem;
+    }
+  }
+
 public:
   /// Code point type
   ///
@@ -143,6 +163,8 @@ public:
     construct_table();
 
     assert(total_freq == table_.front().frequency());
+
+    set_skip_fields();
   }
 
   template <std::integral I, auto N>
@@ -178,6 +200,7 @@ public:
       : table_{detail::data_tag{}, data, eot}
   {
     construct_table();
+    set_skip_fields();
   }
 
   /// @}
@@ -202,13 +225,17 @@ public:
             symbol_type>)
   constexpr table(table_contents_tag, const R& map)
       : table_{table_contents_tag{}, map}
-  {}
+  {
+    set_skip_fields();
+  }
 
   template <std::size_t N>
   constexpr table(
       table_contents_tag, const c_array<std::pair<code, symbol_type>, N>& map)
       : table_{table_contents_tag{}, map}
-  {}
+  {
+    set_skip_fields();
+  }
 
   /// @}
 
@@ -261,10 +288,25 @@ public:
   {
     using R = std::expected<const_iterator, const_iterator>;
 
-    for (; pos != end() and ((*pos).bitsize() <= c.bitsize()); ++pos) {
+    while (pos != end()) {
+      if (pos->bitsize() > c.bitsize()) {
+        break;
+      }
+
+      if (pos->bitsize() < c.bitsize()) {
+        using D = std::iter_difference_t<const_iterator>;
+        assert(
+            pos.base()->skip() <= std::size_t{std::numeric_limits<D>::max()});
+
+        pos += static_cast<D>(pos.base()->skip());
+        continue;
+      }
+
       if (static_cast<const code&>(*pos) == c) {
         return R{std::in_place, pos};
       }
+
+      ++pos;
     }
 
     return R{std::unexpect, pos};
@@ -329,6 +371,8 @@ public:
       ++base_code;                                                 // 2) (code + bl_count[bits-1])
     }
     // clang-format on
+
+    set_skip_fields();
 
     return *this;
   }
