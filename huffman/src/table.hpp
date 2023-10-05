@@ -426,26 +426,25 @@ public:
       -> std::expected<const_iterator, const_iterator>
   {
     using R = std::expected<const_iterator, const_iterator>;
+    using D = std::iter_difference_t<const_iterator>;
 
     while (pos != end()) {
       if (pos->bitsize() > c.bitsize()) {
         break;
       }
 
-      if (pos->bitsize() < c.bitsize()) {
-        using D = std::iter_difference_t<const_iterator>;
-        assert(
-            pos.base()->skip() <= std::size_t{std::numeric_limits<D>::max()});
+      const auto skip = pos.base()->skip();
 
-        pos += static_cast<D>(pos.base()->skip());
-        continue;
+      if (pos->bitsize() == c.bitsize()) {
+        assert(pos->value() <= c.value());
+
+        if (const auto dist = c.value() - pos->value(); dist < skip) {
+          return R{std::in_place, pos + static_cast<D>(dist)};
+        }
       }
 
-      if (static_cast<const code&>(*pos) == c) {
-        return R{std::in_place, pos};
-      }
-
-      ++pos;
+      assert(skip <= std::size_t{std::numeric_limits<D>::max()});
+      pos += static_cast<D>(skip);
     }
 
     return R{std::unexpect, pos};
