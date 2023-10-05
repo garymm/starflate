@@ -31,6 +31,21 @@ config_setting(
     constraint_values = ["@platforms//os:linux"],
 )
 
+# used to disable UBSan null pointer checks with GCC in a patched version of
+# rules_cc
+#
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67762#c2
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71962
+config_setting(
+    name = "gcc_with_ubsan",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "gcc",
+    },
+    values = {
+        "features": "ubsan",
+    },
+)
+
 linux_only = select({
     "linux": [],
     "//conditions:default": ["@platforms//:incompatible"],

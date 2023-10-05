@@ -1,3 +1,5 @@
+workspace(name = "starflate")
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 COMMON_CXX_FLAGS = ["-march=native"]
@@ -34,6 +36,34 @@ host_system_libraries(
 )
 
 load("@host_system_libraries//:defs.bzl", "HOST_SYSTEM_LIBRARIES")
+
+# Pull in rules_cc and patch it to inject options to the `copts` attribute of
+# `cc_{binary,library,test}`. This is used to disable UBSan null pointer checks
+# with GCC as enabling these features will reject valid code:
+#
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67762#c2
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71962
+#
+# Note that we cannot set these options in toolchain registration
+# (bootlin_toolchain below) as the sanitize feature disable flags will precede
+# `-fsanitize=undefined` from `--features=ubsan` and thus be ignored.
+#
+# https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html#id3
+#
+# The patched cc_* rules adds the sanitize feature disable flags in `copts` only
+# for GCC + UBSan builds. As these are set in `user_compile_flags`, these
+# options follow `-fsanitize=undefined` when present.
+#
+# https://bazel.build/rules/lib/toplevel/cc_common#parameters_5
+#
+http_archive(
+    name = "rules_cc",
+    patch_args = ["-p1"],
+    patches = ["//toolchain:rules_cc-gcc-ubsan-no-sanitize-null.patch"],
+    sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
+    strip_prefix = "rules_cc-0.0.9",
+    urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.9/rules_cc-0.0.9.tar.gz"],
+)
 
 # Note: not correct on MacOS.
 LLVM_COLOR_FLAGS = ["-fdiagnostics-color=always" if "libinfo.so.5" in HOST_SYSTEM_LIBRARIES else ""]
