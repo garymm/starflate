@@ -67,18 +67,20 @@ class table
 
   constexpr auto encode_symbols() -> void
   {
-    // precondition, audit
-    assert(std::ranges::is_sorted(table_));
+    auto reversed = std::views::reverse(table_);
 
-    const auto total_size = table_.size();
-    auto first = table_.begin();
-    const auto last = table_.end();
+    // precondition, audit
+    assert(std::ranges::is_sorted(reversed));
+
+    const auto total_size = reversed.size();
+    auto first = reversed.begin();
+    const auto last = reversed.end();
 
     while (first->node_size() != total_size) {
-      join(first[0], first[to_index(first->node_size())]);
+      join_reversed(first[0], first[to_index(first->node_size())]);
 
-      const auto has_higher_freq = [f = first->frequency()](const auto& n) {
-        return n.frequency() > f;
+      const auto has_higher_freq = [&first](const auto& n) {
+        return n.frequency() > first->frequency();
       };
 
       auto lower = first + to_index(first->node_size());
@@ -103,33 +105,26 @@ class table
       return;
     }
 
-    std::ranges::sort(table_);
+    auto reversed = std::views::reverse(table_);
+
+    std::ranges::sort(reversed);
 
     // precondition
     assert(
         std::ranges::unique(
-            table_, {}, [](const auto& elem) { return elem.symbol; })
+            reversed, {}, [](const auto& elem) { return elem.symbol; })
             .empty() and
         "a `table` cannot contain duplicate symbols");
 
     const auto frequencies = std::views::transform(
-        table_, [](const auto& elem) { return elem.frequency(); });
+        reversed, [](const auto& elem) { return elem.frequency(); });
     [[maybe_unused]] const auto total_freq =
         std::accumulate(std::cbegin(frequencies), std::cend(frequencies), 0UZ);
 
     encode_symbols();
 
     // postcondition
-    assert(total_freq == table_.front().frequency());
-
-    // Implicit construction of the Huffman tree results in the least frequent
-    // symbols at the beginning (largest bitsize) and most frequent at the end
-    // (smallest bitsize). See details in `table_node.hpp` for how this is
-    // represented.
-    //
-    // Reversing the elements allows code search to start with the symbols with
-    // the smallest bitsize.
-    std::ranges::reverse(table_);
+    assert(total_freq == reversed.front().frequency());
   }
 
   constexpr auto set_skip_fields() -> void
