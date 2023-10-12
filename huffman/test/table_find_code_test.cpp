@@ -16,12 +16,12 @@ auto main() -> int
   static constexpr auto table1 =  // clang-format off
     huffman::table{
     huffman::table_contents,
-    {std::pair{00000_c, '\4'},
-              {00001_c, 'x'},
-              {0001_c,  'q'},
-              {001_c,   'n'},
+    {std::pair{1_c,     'e'},
               {01_c,    'i'},
-              {1_c,     'e'}}
+              {001_c,   'n'},
+              {0001_c,  'q'},
+              {00001_c, 'x'},
+              {00000_c, '\4'}}
   };
   // clang-format on
 
@@ -78,12 +78,12 @@ auto main() -> int
     static constexpr auto table =  // clang-format off
       huffman::table{
       huffman::table_contents,
-      {std::pair{00000_c, '\4'},
-       {00001_c, 'x'},
-       {0001_c,  'q'},
-       {001_c,   'n'},
-       {01_c,    'i'},
-       {11_c,     'e'}}
+      {std::pair{11_c,     'e'},
+                {01_c,    'i'},
+                {001_c,   'n'},
+                {0001_c,  'q'},
+                {00001_c, 'x'},
+                {00000_c, '\4'}}
     };
     // clang-format on
 

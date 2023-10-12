@@ -79,6 +79,7 @@ public:
   }
 
   constexpr auto size() const noexcept -> size_type { return size_; }
+  constexpr auto empty() const noexcept -> size_type { return not size(); }
 
   constexpr auto end() noexcept -> iterator { return begin() + size(); }
   constexpr auto end() const noexcept -> const_iterator

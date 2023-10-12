@@ -17,19 +17,19 @@ auto main() -> int
     static constexpr auto actual =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{010_c, 'D'},
+        {std::pair{00_c,  'A'},
+                  {1_c,   'B'},
                   {011_c, 'C'},
-                  {00_c,  'A'},
-                  {1_c,   'B'}}}.canonicalize();
+                  {010_c, 'D'}}}.canonicalize();
     // clang-format on
 
     static constexpr auto expected =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{111_c, 'D'},
-                  {110_c, 'C'},
+        {std::pair{0_c,   'B'},
                   {10_c,  'A'},
-                  {0_c,   'B'}}};
+                  {110_c, 'C'},
+                  {111_c, 'D'}}};
     // clang-format on
 
     expect(std::ranges::equal(actual, expected));
@@ -41,27 +41,27 @@ auto main() -> int
     static constexpr auto actual =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{1111_c,  'H'},
-                  {0111_c,  'G'},
-                  {100_c,   'E'},
-                  {011_c,   'D'},
-                  {010_c,   'C'},
+        {std::pair{000_c,   'A'},
                   {001_c,   'B'},
-                  {000_c,   'A'},
-                  {11_c,    'F'}}}.canonicalize();
+                  {010_c,   'C'},
+                  {011_c,   'D'},
+                  {100_c,   'E'},
+                  {11_c,    'F'},
+                  {0111_c,  'G'},
+                  {1111_c,  'H'}}}.canonicalize();
     // clang-format on
 
     static constexpr auto expected =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{1111_c,  'H'},
-                  {1110_c,  'G'},
-                  {110_c,   'E'},
-                  {101_c,   'D'},
-                  {100_c,   'C'},
-                  {011_c,   'B'},
+        {std::pair{00_c,    'F'},
                   {010_c,   'A'},
-                  {00_c,    'F'}}};
+                  {011_c,   'B'},
+                  {100_c,   'C'},
+                  {101_c,   'D'},
+                  {110_c,   'E'},
+                  {1110_c,  'G'},
+                  {1111_c,  'H'}}};
     // clang-format on
 
     expect(std::ranges::equal(actual, expected));
@@ -71,14 +71,14 @@ auto main() -> int
     static constexpr auto t1 =  // clang-format off
       huffman::table{
         huffman::table_contents,
-        {std::pair{1111_c,  'H'},
-                  {1110_c,  'G'},
-                  {110_c,   'E'},
-                  {101_c,   'D'},
-                  {100_c,   'C'},
-                  {011_c,   'B'},
+        {std::pair{00_c,    'F'},
                   {010_c,   'A'},
-                  {00_c,    'F'}}};
+                  {011_c,   'B'},
+                  {100_c,   'C'},
+                  {101_c,   'D'},
+                  {110_c,   'E'},
+                  {1110_c,  'G'},
+                  {1111_c,  'H'}}};
     // clang-format on
 
     auto t2 = t1;
