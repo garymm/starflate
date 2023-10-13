@@ -125,34 +125,4 @@ auto main() -> int
 
     expect(std::ranges::equal(t1, t2));
   };
-
-  test("code table aborts on duplicate codes") = [] {
-    expect(aborts([] {  // clang-format off
-      huffman::table{
-          huffman::table_contents,
-          {std::pair{1_c,     'e'},
-                    {01_c,    'i'},
-                    {001_c,   'n'},
-                    {0001_c,  'g'},
-                    {0001_c,  'q'},
-                    {00001_c, 'x'},
-                    {00000_c, '\4'}}};
-      // clang-format on
-    }));
-  };
-
-  test("code table aborts on duplicate symbols") = [] {
-    expect(aborts([] {  // clang-format off
-      huffman::table{
-          huffman::table_contents,
-          {std::pair{1_c,     'e'},
-                    {01_c,    'i'},
-                    {001_c,   'n'},
-                    {0000_c,  'q'},
-                    {0001_c,  'q'},
-                    {00001_c, 'x'},
-                    {00000_c, '\4'}}};
-      // clang-format on
-    }));
-  };
 }

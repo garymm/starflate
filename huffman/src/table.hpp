@@ -3,6 +3,7 @@
 #include "huffman/src/detail/element_base_iterator.hpp"
 #include "huffman/src/detail/table_node.hpp"
 #include "huffman/src/detail/table_storage.hpp"
+#include "huffman/src/utility.hpp"
 
 #include <algorithm>
 #include <compare>
@@ -22,8 +23,45 @@
 
 namespace starflate::huffman {
 
-template <class T, std::size_t N>
-using c_array = T[N];
+namespace detail {
+
+/// Convert an unsigned integer to signed
+///
+template <std::signed_integral S, std::unsigned_integral U>
+static constexpr auto to_signed(U uint)
+{
+  assert(std::cmp_less_equal(uint, std::numeric_limits<S>::max()));
+  return static_cast<S>(uint);
+}
+
+/// Finds the next internal node that satifies a predicate
+///
+template <std::random_access_iterator I, std::indirect_unary_predicate<I> P>
+constexpr static auto find_node_if(I first, I last, P pred)
+{
+  using S = std::iter_difference_t<I>;
+
+  for (; first != last; first += to_signed<S>(first->node_size())) {
+    if (pred(*first)) {
+      break;
+    }
+  }
+
+  return first;
+}
+
+/// Transforms a symbol-bitsize range to a code-symbol range
+///
+template <class R>
+constexpr auto to_code_symbol(const R& rng)
+{
+  return std::views::transform(rng, [](const auto& elem) {
+    const auto& [symbol, bitsize] = elem;
+    return std::tuple{code{bitsize, {}}, symbol};
+  });
+}
+
+}  // namespace detail
 
 /// Huffman code table
 /// @tparam Symbol symbol type
@@ -44,29 +82,9 @@ class table
 
   detail::table_storage<node_type, Extent> table_;
 
-  template <std::unsigned_integral U>
-  static constexpr auto to_index(U uint)
-  {
-    using S = std::ranges::range_difference_t<decltype(table_)>;
-
-    assert(std::cmp_less_equal(uint, std::numeric_limits<S>::max()));
-    return static_cast<S>(uint);
-  }
-
-  template <std::forward_iterator I, std::indirect_unary_predicate<I> P>
-  constexpr static auto find_node_if(I first, I last, P pred)
-  {
-    for (; first != last; first += to_index(first->node_size())) {
-      if (pred(*first)) {
-        break;
-      }
-    }
-
-    return first;
-  }
-
   constexpr auto encode_symbols() -> void
   {
+    using S = std::ranges::range_difference_t<decltype(table_)>;
     auto reversed = std::views::reverse(table_);
 
     // precondition, audit
@@ -77,13 +95,13 @@ class table
     const auto last = reversed.end();
 
     while (first->node_size() != total_size) {
-      join_reversed(first[0], first[to_index(first->node_size())]);
+      join_reversed(first[0], first[detail::to_signed<S>(first->node_size())]);
 
       const auto has_higher_freq = [&first](const auto& n) {
         return n.frequency() > first->frequency();
       };
 
-      auto lower = first + to_index(first->node_size());
+      auto lower = first + detail::to_signed<S>(first->node_size());
       auto upper = find_node_if(lower, last, has_higher_freq);
 
       // re-sort after creating a new internal node
@@ -147,13 +165,13 @@ class table
   }
 
 public:
-  /// Code point type
-  ///
-  using encoding_type = encoding<Symbol>;
-
   /// Symbol type
   ///
-  using symbol_type = typename encoding_type::symbol_type;
+  using symbol_type = Symbol;
+
+  /// Code point type
+  ///
+  using encoding_type = encoding<symbol_type>;
 
   /// Const iterator type
   ///
@@ -178,19 +196,19 @@ public:
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::tuple<symbol_type, std::size_t>>
-  constexpr explicit table(const R& frequencies) : table{frequencies, {}}
-  {}
-
-  template <std::ranges::sized_range R>
-    requires std::convertible_to<
-        std::ranges::range_value_t<R>,
-        std::tuple<symbol_type, std::size_t>>
   constexpr table(const R& frequencies, std::optional<symbol_type> eot)
       : table_{detail::frequency_tag{}, frequencies, eot}
   {
     construct_table();
     set_skip_fields();
   }
+
+  template <std::ranges::sized_range R>
+    requires std::convertible_to<
+        std::ranges::range_value_t<R>,
+        std::tuple<symbol_type, std::size_t>>
+  constexpr explicit table(const R& frequencies) : table{frequencies, {}}
+  {}
 
   template <std::integral I, auto N>
   constexpr explicit table(
@@ -249,7 +267,7 @@ public:
             std::tuple_element_t<1, std::ranges::range_value_t<R>>,
             symbol_type>)
   constexpr table(table_contents_tag, const R& map)
-      : table_{table_contents_tag{}, map}
+      : table_{table_contents, map}
   {
     set_skip_fields();
   }
@@ -257,9 +275,39 @@ public:
   template <std::size_t N>
   constexpr table(
       table_contents_tag, const c_array<std::pair<code, symbol_type>, N>& map)
-      : table_{table_contents_tag{}, map}
+      : table_{table_contents, map}
   {
     set_skip_fields();
+  }
+
+  /// @}
+
+  /// Constructs a `table` from a symbol-bitsize mapping
+  /// @tparam R sized-range of symbol-bitsize tuple-likes
+  /// @param rng range of symbol-bitsize tuple-likes
+  /// @pre all symbols are unique
+  /// @pre the number of symbols with the same bitsize does not exceed the
+  ///     available number of prefix free codes with that bitsize
+  ///
+  /// @{
+
+  template <std::ranges::sized_range R>
+    requires std::convertible_to<
+        std::ranges::range_reference_t<R>,
+        std::tuple<symbol_type, std::uint8_t>>
+  constexpr table(symbol_bitsize_tag, const R& map)
+      : table{table_contents, detail::to_code_symbol(map)}
+  {
+    canonicalize();
+  }
+
+  template <std::size_t N>
+  constexpr table(
+      symbol_bitsize_tag,
+      const c_array<std::pair<symbol_type, std::uint8_t>, N>& map)
+      : table{table_contents, detail::to_code_symbol(map)}
+  {
+    canonicalize();
   }
 
   /// @}
@@ -458,5 +506,13 @@ template <class R>
   requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2)
 table(table_contents_tag, const R&)
     -> table<detail::tuple_arg_t<1, R>, detail::tuple_size_v<R>()>;
+
+template <class S, class I, std::size_t N>
+table(symbol_bitsize_tag, const c_array<std::pair<S, I>, N>&) -> table<S, N>;
+
+template <class R>
+  requires (detail::tuple_size_v<std::ranges::range_value_t<R>>() == 2)
+table(symbol_bitsize_tag, const R&)
+    -> table<detail::tuple_arg_t<0, R>, detail::tuple_size_v<R>()>;
 
 }  // namespace starflate::huffman
