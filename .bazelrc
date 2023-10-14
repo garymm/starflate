@@ -25,3 +25,7 @@ build:clang-tidy --@bazel_clang_tidy//:clang_tidy_executable=@llvm_toolchain//:c
 try-import %workspace%/user.bazelrc
 
 build --workspace_status_command=tools/bazel_workspace_status.sh
+# Do not load LD_LIBRARY_PATH from the environment. This leads to more cache hits
+# when triggering builds using different shells on the same machine.
+# https://stackoverflow.com/questions/74881594/bazel-builds-from-scratch-ignoring-cache
+build --incompatible_strict_action_env
