@@ -4,6 +4,7 @@
 #include "huffman/src/table.hpp"
 
 #include <iterator>
+#include <span>
 
 namespace starflate::huffman {
 /// Decodes a bit stream using a code table.
