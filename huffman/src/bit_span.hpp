@@ -2,11 +2,13 @@
 #include "huffman/src/bit.hpp"
 #include "huffman/src/detail/iterator_interface.hpp"
 
+#include <bit>
 #include <bitset>
 #include <cassert>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iterator>
 #include <limits>
 #include <ranges>
@@ -17,7 +19,8 @@ class bit_span : public std::ranges::view_interface<bit_span>
 {
   const std::byte* data_;
   std::size_t bit_size_;
-  std::uint8_t bit_offset_;  // always less than CHAR_BIT
+  std::size_t init_bit_size_;  // initial value of bit_size_
+  std::uint8_t bit_offset_;    // always less than CHAR_BIT
 
 public:
   /// An iterator over the bits in a bit_span.
@@ -82,7 +85,10 @@ public:
   // NOLINTBEGIN(bugprone-easily-swappable-parameters)
   constexpr bit_span(
       const std::byte* data, std::size_t bit_size, std::uint8_t bit_offset = {})
-      : data_{data}, bit_size_{bit_size}, bit_offset_{bit_offset}
+      : data_{data},
+        bit_size_{bit_size},
+        init_bit_size_{bit_size},
+        bit_offset_{bit_offset}
   // NOLINTEND(bugprone-easily-swappable-parameters)
   {
     assert(
@@ -113,5 +119,59 @@ public:
   {
     return iterator{*this, bit_offset_ + bit_size_};
   };
+
+  template <class T>
+  constexpr auto pop() -> T
+  {
+    assert(
+        bit_size_ >= sizeof(T) * CHAR_BIT and
+        "bit_span has insufficient "
+        "remaining bits to pop");
+    assert(bit_offset_ == 0 and "bit_span must be byte aligned to pop");
+    T res;
+    std::memcpy(&res, data_, sizeof(T));
+    std::advance(data_, sizeof(T));
+    bit_size_ -= sizeof(T) * CHAR_BIT;
+    if constexpr (std::endian::native == std::endian::big) {
+      res = std::byteswap(res);
+    }
+    return res;
+  }
+
+  constexpr auto pop_8() -> std::uint8_t { return pop<std::uint8_t>(); }
+
+  constexpr auto pop_16() -> std::uint16_t { return pop<std::uint16_t>(); }
+
+  /// Consumes the given number of bits. Advances the start of the view.
+  ///
+  /// @pre n <= std::ranges::size(this)
+  constexpr auto consume(std::size_t n) -> void
+  {
+    assert(n <= bit_size_);
+    bit_size_ -= n;
+    // invariant
+    assert(bit_offset_ < CHAR_BIT);
+    bit_offset_ += n % CHAR_BIT;
+    if (bit_offset_ >= CHAR_BIT) {
+      bit_offset_ -= CHAR_BIT;
+      n += CHAR_BIT;
+    }
+    std::advance(data_, n / CHAR_BIT);
+  }
+
+  /// Consumes bits until the start is aligned to a byte boundary.
+  constexpr auto consume_to_byte_boundary() -> void
+  {
+    if (bit_offset_) {
+      consume(CHAR_BIT - bit_offset_);
+    }
+  }
+
+  /// Returns the number of bits that have been consumed (or popped).
+  [[nodiscard]]
+  constexpr auto n_consumed() const -> size_t
+  {
+    return init_bit_size_ - bit_size_;
+  }
 };
 }  // namespace starflate::huffman
