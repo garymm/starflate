@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 
 namespace starflate::huffman {
@@ -26,5 +27,11 @@ struct symbol_bitsize_tag
   explicit symbol_bitsize_tag() = default;
 };
 inline constexpr auto symbol_bitsize = symbol_bitsize_tag{};
+
+template <class... Ts>
+constexpr auto byte_array(Ts... values)
+{
+  return std::array<std::byte, sizeof...(Ts)>{std::byte(values)...};
+}
 
 }  // namespace starflate::huffman
