@@ -4,5 +4,7 @@ package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
     name = "decompress",
+    srcs = ["decompress.cpp"],
     hdrs = ["decompress.hpp"],
+    deps = ["//huffman"],
 )

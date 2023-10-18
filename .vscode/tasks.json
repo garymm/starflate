@@ -1,0 +1,18 @@
+{
+    "tasks": [
+        {
+            "args": [
+                "build",
+                "-c",
+                "dbg",
+                "//..."
+            ],
+            "command": "bazel",
+            "group": "build",
+            "label": "build-debug",
+            "problemMatcher": [],
+            "type": "shell"
+        }
+    ],
+    "version": "2.0.0"
+}
