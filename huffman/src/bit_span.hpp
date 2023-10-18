@@ -47,7 +47,7 @@ public:
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           static_cast<unsigned long long>(parent_->data_[offset_ / CHAR_BIT])};
 
-      return bit{byte[CHAR_BIT - 1 - (offset_ % CHAR_BIT)]};
+      return bit{byte[offset_ % CHAR_BIT]};
     }
 
     constexpr auto operator+=(difference_type n) -> iterator&
