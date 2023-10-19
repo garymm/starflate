@@ -5,6 +5,7 @@ cc_test(
     timeout = "short",
     srcs = ["decompress_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//src:decompress",
     ],
 )

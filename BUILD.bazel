@@ -1,6 +1,7 @@
 load("@bazel_clang_format//:defs.bzl", "clang_format_update")
 load("@bazel_clang_tidy//:defs.bzl", "clang_tidy_apply_fixes")
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -39,4 +40,12 @@ buildifier(
     name = "buildifier.fix",
     lint_mode = "warn",
     mode = "fix",
+)
+
+cc_library(
+    name = "boost_ut",
+    hdrs = ["ut.hpp"],
+    include_prefix = "boost",
+    visibility = ["//:__subpackages__"],
+    deps = ["@boost_ut"],
 )

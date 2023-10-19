@@ -5,8 +5,8 @@ cc_test(
     timeout = "short",
     srcs = ["bit_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -15,8 +15,8 @@ cc_test(
     timeout = "short",
     srcs = ["code_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -25,8 +25,8 @@ cc_test(
     timeout = "short",
     srcs = ["table_canonicalize_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -35,8 +35,8 @@ cc_test(
     timeout = "short",
     srcs = ["table_find_code_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -45,8 +45,8 @@ cc_test(
     timeout = "short",
     srcs = ["table_from_frequencies_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -55,8 +55,8 @@ cc_test(
     timeout = "short",
     srcs = ["table_from_data_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -65,8 +65,8 @@ cc_test(
     timeout = "short",
     srcs = ["table_from_contents_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -75,8 +75,8 @@ cc_test(
     timeout = "short",
     srcs = ["table_from_symbol_bitsize_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -85,8 +85,8 @@ cc_test(
     timeout = "short",
     srcs = ["bit_span_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 
@@ -95,8 +95,8 @@ cc_test(
     timeout = "short",
     srcs = ["decode_test.cpp"],
     deps = [
+        "//:boost_ut",
         "//huffman",
-        "@boost_ut",
     ],
 )
 

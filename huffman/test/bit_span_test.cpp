@@ -7,6 +7,7 @@
 #include <climits>
 #include <cstdint>
 #include <numeric>
+#include <ranges>
 #include <vector>
 
 auto main() -> int
@@ -91,9 +92,6 @@ auto main() -> int
     }));
   } | std::vector<std::uint8_t>{8, 9, 10};  // NOLINT(readability-magic-numbers)
 
-  std::vector<size_t> n_to_consume(1Z + 2Z * CHAR_BIT);
-  std::iota(n_to_consume.begin(), n_to_consume.end(), 0);
-
   test("consume") = [](size_t n) {
     static constexpr auto data = huffman::byte_array(0b10101010, 0b01010101);
 
@@ -114,7 +112,7 @@ auto main() -> int
     } else {
       expect(aborts([&] { bits.consume(n); }));
     }
-  } | n_to_consume;
+  } | std::views::iota(0UZ, 2UZ * (CHAR_BIT + 1UZ));
 
   test("consume_to_byte_boundary") = [] {
     static constexpr auto data = huffman::byte_array(0b10101010, 0b01010101);
@@ -135,21 +133,21 @@ auto main() -> int
   };
 
   test("pop") = [] {
+    using ::boost::ut::eq;
+
     // NOLINTBEGIN(readability-magic-numbers)
     static constexpr auto data =
         huffman::byte_array(0b10101010, 0b01010101, 0b11111111);
     huffman::bit_span span{data};
     const std::uint16_t got_16{span.pop_16()};
     constexpr std::uint16_t expected_16{0b0101010110101010};
-    expect(got_16 == expected_16)
-        << "got: " << got_16 << " expected: " << expected_16;
+    expect(eq(got_16, expected_16));
 
     expect(aborts([&] { span.pop_16(); }));
 
     const std::uint8_t got_8{span.pop_8()};
     constexpr std::uint8_t expected_8{0b11111111};
-    expect(got_8 == expected_8)
-        << "got: " << got_8 << " expected: " << expected_8;
+    expect(eq(got_8, expected_8));
 
     expect(aborts([&] { span.pop_8(); }));
     // NOLINTEND(readability-magic-numbers)
