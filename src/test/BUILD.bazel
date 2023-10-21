@@ -9,3 +9,13 @@ cc_test(
         "//src:decompress",
     ],
 )
+
+cc_test(
+    name = "copy_test",
+    timeout = "short",
+    srcs = ["copy_test.cpp"],
+    deps = [
+        "//:boost_ut",
+        "//src:decompress",
+    ],
+)
