@@ -142,7 +142,7 @@ register_toolchains(
     "@gcc_toolchain//:toolchain",
 )
 
-BOOST_UT_VERSION = "2.0.0"
+BOOST_UT_VERSION = "20f2c3f811e25b8c398c6e98545dbf07d72eb4e8"
 
 http_archive(
     name = "boost_ut",
@@ -152,13 +152,13 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "boost_ut",
     hdrs = ["include/boost/ut.hpp"],
-    includes = ["include"],
+    includes = ["."],
     visibility = ["//visibility:public"],
 )
 """,
-    sha256 = "8b5b11197d1308dfc1fe20efd6a656e0c833dbec2807e2292967f6e2f7c0420f",
+    sha256 = "b5a4f3f1f88f3fb375370a734ab7b6b6c7b4f23e82f949544e61f64ebdb1f8dd",
     strip_prefix = "ut-%s" % BOOST_UT_VERSION,
-    url = "https://github.com/boost-ext/ut/archive/refs/tags/v%s.tar.gz" % BOOST_UT_VERSION,
+    url = "https://github.com/boost-ext/ut/archive/%s.tar.gz" % BOOST_UT_VERSION,
 )
 
 GOOGLE_BENCHMARK_VERSION = "1.8.0"
