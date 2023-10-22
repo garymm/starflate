@@ -2,6 +2,7 @@
 #include "huffman/src/bit_span.hpp"
 #include "huffman/src/code.hpp"
 #include "huffman/src/table.hpp"
+#include "huffman/src/utility.hpp"
 
 #include <iterator>
 #include <span>
@@ -21,7 +22,7 @@ namespace starflate::huffman {
 /// @tparam Extent The extent of the code table.
 /// @tparam O The type of the output iterator.
 template <
-    std::regular Symbol,
+    symbol Symbol,
     std::size_t Extent = std::dynamic_extent,
     std::output_iterator<Symbol> O>
 constexpr auto

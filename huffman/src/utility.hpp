@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <concepts>
 #include <cstddef>
 
 namespace starflate::huffman {
@@ -33,5 +34,10 @@ constexpr auto byte_array(Ts... values)
 {
   return std::array<std::byte, sizeof...(Ts)>{std::byte(values)...};
 }
+
+/// Specifies that a type that can be used as a symbol
+///
+template <class T>
+concept symbol = std::regular<T> and std::totally_ordered<T>;
 
 }  // namespace starflate::huffman

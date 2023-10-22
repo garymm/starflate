@@ -1,6 +1,7 @@
 #pragma once
 
 #include "huffman/src/code.hpp"
+#include "huffman/src/utility.hpp"
 
 #include <concepts>
 #include <ostream>
@@ -12,8 +13,7 @@ namespace starflate::huffman {
 /// This type associates a symbol to a code. It is typically constructed and
 /// updated as part of the construction of a table.
 ///
-template <std::regular Symbol>
-  requires std::totally_ordered<Symbol>
+template <symbol Symbol>
 struct encoding : code
 {
   using symbol_type = Symbol;
