@@ -7,12 +7,12 @@
 #include <stdexcept>
 #include <utility>
 
-constexpr auto reverse_bits(std::byte b) -> std::byte
+constexpr auto reverse_bits(int b) -> std::byte
 {
   std::byte result{};
   for (auto i = 0; i < CHAR_BIT; ++i) {
     result <<= 1;
-    result |= std::byte{(b & std::byte{1}) == std::byte{1}};
+    result |= std::byte{(b & 1) == 1};
     b >>= 1;
   }
   return result;
@@ -30,12 +30,12 @@ auto main() -> int
     // encoded data from soxofaan/dahuffman readme.rst.
     // We reverse the bits in each byte to match the encoding used in DEFLATE.
     constexpr std::array encoded_bytes = {
-        reverse_bits(std::byte{134}),
-        reverse_bits(std::byte{124}),
-        reverse_bits(std::byte{37}),
-        reverse_bits(std::byte{19}),
-        reverse_bits(std::byte{105}),
-        reverse_bits(std::byte{64})};
+        reverse_bits(134),
+        reverse_bits(124),
+        reverse_bits(37),
+        reverse_bits(19),
+        reverse_bits(105),
+        reverse_bits(64)};
 
     constexpr char eot = {'\4'};
     static constexpr auto code_table =  // clang-format off

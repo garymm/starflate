@@ -164,5 +164,14 @@ public:
       consume(CHAR_BIT - bit_offset_);
     }
   }
+
+  /// Returns a pointer to the underlying data.
+  /// @pre *this aligned to a byte boundary.
+  [[nodiscard]]
+  constexpr auto byte_data() const -> const std::byte*
+  {
+    assert(bit_offset_ == 0 and "bit_span must be byte aligned to access data");
+    return data_;
+  }
 };
 }  // namespace starflate::huffman
