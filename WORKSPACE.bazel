@@ -98,11 +98,11 @@ bootlin_toolchain(
     libc_impl = "glibc",
 )
 
-BAZEL_TOOLCHAIN_VERSION = "a76d197a47ad7dbfc9374ccd5691cb4ebd985607"
+BAZEL_TOOLCHAIN_VERSION = "ade23e0e37c5308162c012a4f4224459c1c4fa22"
 
 http_archive(
     name = "bazel_toolchain",
-    sha256 = "dcb4552eccfdaae1915153a676a36d9d861a9809065c6de5816cc0ea1d7e0479",
+    sha256 = "968e507ce913b93971aeb77b4b0a96f7b59b1f51cbaae57aefef4c573776ed56",
     strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
     url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
 )
