@@ -2,7 +2,6 @@ genrule(
     name = "gen_verbose_clang_tidy",
     srcs = [],
     outs = ["verbose-clang-tidy.sh"],
-    # echo "$(dirname bazel-out/k8-fastbuild/bin/tools/verbose-clang-tidy.sh)/../<tidy-path>) ..."
     cmd = """
 echo "$$(dirname $@)/../$(rootpath {tidy}) --enable-check-profile \\$$@" > $@
 """.format(
@@ -16,4 +15,10 @@ sh_binary(
     name = "verbose-clang-tidy",
     srcs = ["verbose-clang-tidy.sh"],
     data = ["@llvm_toolchain//:clang-tidy"],
+)
+
+py_binary(
+    name = "deflate_compress",
+    srcs = ["deflate_compress.py"],
+    visibility = ["//:__subpackages__"],
 )
