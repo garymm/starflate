@@ -22,7 +22,7 @@ Install the recommended extensions. See .vscode/extensions.json.
 Create a compilation database:
 
 ```sh
-bazel build //... && bazel run @hedron_compile_commands//:refresh_all
+bazel run @hedron_compile_commands//:refresh_all && bazel build //...
 ```
 
 Then configure [clangd](https://clangd.llvm.org/).
