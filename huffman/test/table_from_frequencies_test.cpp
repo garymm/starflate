@@ -49,7 +49,9 @@ public:
 
 auto main() -> int
 {
-  using namespace ::boost::ut;
+  using ::boost::ut::aborts;
+  using ::boost::ut::expect;
+  using ::boost::ut::test;
 
   namespace huffman = ::starflate::huffman;
 
@@ -61,12 +63,12 @@ auto main() -> int
 
     constexpr auto table =
         "Bits\tCode\tValue\tSymbol\n"
-        "1\t1\t1\t`e`\n"
-        "2\t01\t1\t`i`\n"
-        "3\t001\t1\t`n`\n"
-        "4\t0001\t1\t`q`\n"
-        "5\t00001\t1\t`x`\n"
-        "5\t00000\t0\t`\4`\n";
+        "1\t0\t0\t`e`\n"
+        "2\t10\t2\t`i`\n"
+        "3\t110\t6\t`n`\n"
+        "4\t1110\t14\t`q`\n"
+        "5\t11110\t30\t`\4`\n"
+        "5\t11111\t31\t`x`\n";
 
     auto ss = std::stringstream{};
     ss << huffman::table{frequencies, eot};
@@ -80,13 +82,14 @@ auto main() -> int
 
     const auto table = huffman::table{frequencies};
 
-    using E = huffman::encoding<Country>;
+    using namespace huffman::literals;
+    using encoding = huffman::encoding<Country>;
 
-    expect(E{"FR", {1, 1}} == table.begin()[0]);
-    expect(E{"IT", {2, 1}} == table.begin()[1]);
-    expect(E{"UK", {3, 1}} == table.begin()[2]);
-    expect(E{"DE", {4, 1}} == table.begin()[3]);
-    expect(E{"BE", {4, 0}} == table.begin()[4]);
+    expect(encoding{"FR", 0_c} == table.begin()[0]);
+    expect(encoding{"IT", 10_c} == table.begin()[1]);
+    expect(encoding{"UK", 110_c} == table.begin()[2]);
+    expect(encoding{"BE", 1110_c} == table.begin()[3]);
+    expect(encoding{"DE", 1111_c} == table.begin()[4]);
   };
 
   test("code table can be statically sized") = [] {
@@ -140,19 +143,25 @@ auto main() -> int
   };
 
   test("code table constructible in constant expression context") = [] {
-    static constexpr auto frequencies = std::array<
-        std::pair<char, std::size_t>,
-        5>{{{'e', 100}, {'n', 20}, {'x', 1}, {'i', 40}, {'q', 3}}};
+    static constexpr auto frequencies =  // clang-format off
+        std::array<std::pair<char, std::size_t>, 5>{{
+          {'e', 100},
+          {'n', 20},
+          {'x', 1},
+          {'i', 40},
+          {'q', 3}}};
+    // clang-format on
 
     static constexpr auto table = huffman::table{frequencies};
 
-    using E = huffman::encoding<char>;
+    using namespace huffman::literals;
+    using huffman::encoding;
 
-    static_assert(E{'e', {1, 1}} == table.begin()[0]);
-    static_assert(E{'i', {2, 1}} == table.begin()[1]);
-    static_assert(E{'n', {3, 1}} == table.begin()[2]);
-    static_assert(E{'q', {4, 1}} == table.begin()[3]);
-    static_assert(E{'x', {4, 0}} == table.begin()[4]);
+    static_assert(encoding{'e', 0_c} == table.begin()[0]);
+    static_assert(encoding{'i', 10_c} == table.begin()[1]);
+    static_assert(encoding{'n', 110_c} == table.begin()[2]);
+    static_assert(encoding{'q', 1110_c} == table.begin()[3]);
+    static_assert(encoding{'x', 1111_c} == table.begin()[4]);
   };
 
   test("code table constructible in constant expression context with deduced "

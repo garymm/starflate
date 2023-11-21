@@ -66,6 +66,11 @@ constexpr static auto find_node_if(I first, I last, P pred)
 /// `std::array` is used to store the Huffman tree, with the size determined by
 /// `Extent`.
 ///
+/// This type uses "DEFLATE" canonical form for codes:
+/// * All codes of a given bit length have lexicographically consecutive
+///   values, in the same order as the symbols they represent;
+/// * Shorter codes lexicographically precede longer codes.
+///
 template <symbol Symbol, std::size_t Extent = std::dynamic_extent>
 class table
 {
@@ -155,6 +160,60 @@ class table
     }
   }
 
+  /// Update table code values to DEFLATE canonical form
+  ///
+  /// The Huffman codes used for each alphabet in the "deflate" format have two
+  /// additional rules:
+  /// * All codes of a given bit length have lexicographically consecutive
+  ///   values, in the same order as the symbols they represent;
+  /// * Shorter codes lexicographically precede longer codes.
+  ///
+  /// @see section 3.2.2 https://datatracker.ietf.org/doc/html/rfc1951
+  ///
+  /// @note This method is called in all constructors except for the
+  ///     table-contents constructor.
+  ///
+  constexpr auto canonicalize() & -> table&
+  {
+    using value_type = decltype(std::declval<code>().value());
+
+    // set lexicographical order
+    std::ranges::sort(  //
+        table_,         //
+        [](const auto& x, const auto& y) {
+          return std::pair{x.bitsize(), std::ref(x.symbol)} <
+                 std::pair{y.bitsize(), std::ref(y.symbol)};
+        });
+
+    // used to determine initial value of next_code[bits]
+    // calculated in step 2
+    auto base_code = value_type{};
+
+    // used in determining consecutive code values in step 3
+    auto next_code = code{};
+
+    // clang-format off
+    for (auto& elem : table_) {
+      assert(next_code.bitsize() <= elem.bitsize());
+
+      next_code = {
+          elem.bitsize(),
+          next_code.bitsize() == elem.bitsize()
+              ? next_code.value() + value_type{1}                     // 3) next_code[len]++;
+              : base_code <<= (elem.bitsize() - next_code.bitsize())  // 2) next_code[bits] = code; code = (...) << 1;
+      };
+
+      static_cast<code&>(elem) = next_code;                           // 3) tree[n].Code = next_code[len];
+
+      ++base_code;                                                    // 2) (code + bl_count[bits-1])
+    }
+    // clang-format on
+
+    set_skip_fields();
+
+    return *this;
+  }
+
 public:
   /// Symbol type
   ///
@@ -191,7 +250,7 @@ public:
       : table_{detail::frequency_tag{}, frequencies, eot}
   {
     construct_table();
-    set_skip_fields();
+    canonicalize();
   }
 
   template <std::ranges::sized_range R>
@@ -229,7 +288,7 @@ public:
       : table_{detail::data_tag{}, data, eot}
   {
     construct_table();
-    set_skip_fields();
+    canonicalize();
   }
 
   template <std::ranges::input_range R>
@@ -242,11 +301,10 @@ public:
   /// Constructs a `table` from the given code-symbol mapping contents
   /// @tparam R sized-range of code-symbol 2-tuples
   /// @pre all `code` and `symbol` values container in mapping are unique
-  /// @pre `code` values are prefix free
+  /// @pre `code` values are specified in DEFLATE canonical form
+  /// @pre `code` and `symbol` values are provided in lexicographical order
   ///
-  /// Construct a `table` with explicit contents. This constructor avoids
-  /// generation of prefix-free codes for symbols and assumes that the provided
-  /// codes have been generated correctly.
+  /// Construct a `table` with explicit contents.
   ///
   /// @{
 
@@ -260,6 +318,24 @@ public:
   constexpr table(table_contents_tag, const R& map)
       : table_{table_contents, map}
   {
+    assert(
+        std::ranges::is_sorted(
+            map,
+            [](const auto& x, const auto& y) {
+              const auto x_value = std::get<code>(x).value();
+              const auto y_value = std::get<code>(y).value();
+
+              const auto x_bitsize = std::get<code>(x).bitsize();
+              const auto y_bitsize = std::get<code>(y).bitsize();
+
+              const auto x_symbol = std::get<symbol_type>(x);
+              const auto y_symbol = std::get<symbol_type>(y);
+
+              return (x_value < y_value) and
+                     ((x_bitsize < y_bitsize) or
+                      ((x_bitsize == y_bitsize) and (x_symbol < y_symbol)));
+            }) and
+        "table contents are not provided in DEFLATE canonical form");
     set_skip_fields();
   }
 
@@ -302,8 +378,10 @@ public:
 
   /// Returns an iterator to the first `encoding`
   ///
-  /// @note elements are ordered by code bitsize. If multiple elements have the
-  ///     same code bitsize, the order is unspecified.
+  /// @note
+  /// * All codes of a given bit length have lexicographically consecutive
+  ///   values, in the same order as the symbols they represent;
+  /// * Shorter codes lexicographically precede longer codes.
   ///
   [[nodiscard]]
   constexpr auto begin() const -> const_iterator
@@ -381,66 +459,6 @@ public:
     }
     return os;
   }
-
-  /// Update table code values to DEFLATE canonical form
-  ///
-  /// The Huffman codes used for each alphabet in the "deflate" format have two
-  /// additional rules:
-  /// * All codes of a given bit length have lexicographically consecutive
-  ///   values, in the same order as the symbols they represent;
-  /// * Shorter codes lexicographically precede longer codes.
-  ///
-  /// @see section 3.2.2 https://datatracker.ietf.org/doc/html/rfc1951
-  ///
-  /// @{
-
-  constexpr auto canonicalize() & -> table&
-  {
-    using value_type = decltype(std::declval<code>().value());
-
-    // set lexicographical order
-    std::ranges::sort(  //
-        table_,         //
-        [](const auto& x, const auto& y) {
-          return std::pair{x.bitsize(), std::ref(x.symbol)} <
-                 std::pair{y.bitsize(), std::ref(y.symbol)};
-        });
-
-    // used to determine initial value of next_code[bits]
-    // calculated in step 2
-    auto base_code = value_type{};
-
-    // used in determining consecutive code values in step 3
-    auto next_code = code{};
-
-    // clang-format off
-    for (auto& elem : table_) {
-      assert(next_code.bitsize() <= elem.bitsize());
-
-      next_code = {
-          elem.bitsize(),
-          next_code.bitsize() == elem.bitsize()
-              ? next_code.value() + value_type{1}                     // 3) next_code[len]++;
-              : base_code <<= (elem.bitsize() - next_code.bitsize())  // 2) next_code[bits] = code; code = (...) << 1;
-      };
-
-      static_cast<code&>(elem) = next_code;                           // 3) tree[n].Code = next_code[len];
-
-      ++base_code;                                                    // 2) (code + bl_count[bits-1])
-    }
-    // clang-format on
-
-    set_skip_fields();
-
-    return *this;
-  }
-
-  constexpr auto canonicalize() && -> table&&
-  {
-    return std::move(canonicalize());
-  }
-
-  /// @}
 };
 
 namespace detail {
