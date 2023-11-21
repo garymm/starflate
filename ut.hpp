@@ -3,11 +3,50 @@
 #include <include/boost/ut.hpp>
 
 #include <algorithm>
+#include <concepts>
+#include <cstddef>
+#include <cstdint>
 #include <optional>
+#include <ostream>
 #include <ranges>
 #include <type_traits>
 
+namespace starflate::test::detail {
+
+template <class Printer>
+auto& print(Printer& p, std::byte b)
+{
+  using U = std::uint8_t;
+
+  const auto value = static_cast<std::uint8_t>(b);
+
+  for (auto mask = U{0x80U}; mask != U{}; mask >>= 1U) {
+    p << (static_cast<bool>(value & mask) ? '1' : '0');
+  }
+
+  return p;
+}
+
+}  // namespace starflate::test::detail
+
+template <
+    class Ostream,
+    class = std::enable_if_t<
+        std::derived_from<std::remove_cvref_t<Ostream>, std::ostream>>>
+auto operator<<(Ostream&& os, std::byte b)
+    -> decltype(os << char{}, std::forward<Ostream>(os))
+{
+  ::starflate::test::detail::print(os, b);
+  return std::forward<Ostream>(os);
+}
+
 namespace boost::ut {
+
+auto& operator<<(printer& p, std::byte b)
+{
+  return ::starflate::test::detail::print(p, b);
+}
+
 namespace detail {
 
 template <class TLhs, class TRhs>
