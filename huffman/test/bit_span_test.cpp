@@ -13,6 +13,7 @@
 auto main() -> int
 {
   using ::boost::ut::aborts;
+  using ::boost::ut::eq;
   using ::boost::ut::expect;
   using ::boost::ut::test;
 
@@ -29,6 +30,12 @@ auto main() -> int
         expected | std::views::transform([](char c) {
           return huffman::bit{c};
         })));
+  };
+
+  test("default constructible") = [] {
+    constexpr auto bits = huffman::bit_span{};
+
+    expect(eq(0, bits.size()));
   };
 
   test("indexable") = [] {
@@ -113,6 +120,21 @@ auto main() -> int
       expect(aborts([&] { bits.consume(n); }));
     }
   } | std::views::iota(0UZ, 2UZ * (CHAR_BIT + 1UZ));
+
+  test("consume returns reference") = [] {
+    static constexpr auto data = std::byte{};
+
+    constexpr auto consumed_size = [] {
+      auto bits = huffman::bit_span{&data, CHAR_BIT};
+      return bits.consume(1).size();
+    }();
+
+    expect(eq(CHAR_BIT - 1, consumed_size));
+
+    constexpr auto consumed_bits =
+        huffman::bit_span{&data, CHAR_BIT}.consume(1);
+    expect(eq(CHAR_BIT - 1, consumed_bits.size()));
+  };
 
   test("consume_to_byte_boundary") = [] {
     static constexpr auto data = huffman::byte_array(0b10101010, 0b01010101);
