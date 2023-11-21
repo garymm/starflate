@@ -17,10 +17,9 @@ namespace starflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
 class bit_span : public std::ranges::view_interface<bit_span>
 {
-  const std::byte* data_;
-  std::size_t bit_size_;
-  std::size_t init_bit_size_;  // initial value of bit_size_
-  std::uint8_t bit_offset_;    // always less than CHAR_BIT
+  const std::byte* data_{nullptr};
+  std::size_t bit_size_{};
+  std::uint8_t bit_offset_{};  // always less than CHAR_BIT
 
 public:
   /// An iterator over the bits in a bit_span.
@@ -39,7 +38,7 @@ public:
 
     iterator() = default;
     constexpr iterator(const bit_span& parent, std::size_t offset)
-        : parent_(&parent), offset_(offset)
+        : parent_{&parent}, offset_{offset}
     {
       assert(offset_ <= std::numeric_limits<difference_type>::max());
     }
@@ -74,6 +73,10 @@ public:
     operator<=>(const iterator&, const iterator&) = default;
   };
 
+  /// Constructs an empty bit_span
+  ///
+  bit_span() = default;
+
   /// Constructs a bit_span from the given data.
   ///
   /// @param data a pointer to the first byte of the data.
@@ -85,10 +88,7 @@ public:
   // NOLINTBEGIN(bugprone-easily-swappable-parameters)
   constexpr bit_span(
       const std::byte* data, std::size_t bit_size, std::uint8_t bit_offset = {})
-      : data_{data},
-        bit_size_{bit_size},
-        init_bit_size_{bit_size},
-        bit_offset_{bit_offset}
+      : data_{data}, bit_size_{bit_size}, bit_offset_{bit_offset}
   // NOLINTEND(bugprone-easily-swappable-parameters)
   {
     assert(
@@ -145,16 +145,23 @@ public:
   /// Consumes the given number of bits. Advances the start of the view.
   ///
   /// @pre n <= std::ranges::size(*this)
-  constexpr auto consume(std::size_t n) -> void
+  ///
+  constexpr auto consume(std::size_t n) & -> bit_span&
   {
-    assert(n <= bit_size_);
+    assert(n <= bit_size_);  // pre
     bit_size_ -= n;
-    // invariant
-    assert(bit_offset_ < CHAR_BIT);
+
     const auto distance = bit_offset_ + n;
     std::advance(data_, distance / CHAR_BIT);
-
     bit_offset_ = static_cast<std::uint8_t>(distance % CHAR_BIT);
+
+    assert(bit_offset_ < CHAR_BIT);  // post
+    return *this;
+  }
+  constexpr auto consume(std::size_t n) && -> bit_span&&
+  {
+    consume(n);
+    return std::move(*this);
   }
 
   /// Consumes bits until the start is aligned to a byte boundary.
