@@ -63,6 +63,7 @@ jobs:
         bazel \
           --bazelrc=.github/workflows/ci.bazelrc \
           coverage \
+          --instrumentation_filter="-/:boost_ut" \
           //...
 
     - uses: codecov/codecov-action@v3

@@ -44,6 +44,7 @@ buildifier(
 
 cc_library(
     name = "boost_ut",
+    testonly = True,
     hdrs = ["ut.hpp"],
     include_prefix = "boost",
     visibility = ["//:__subpackages__"],
