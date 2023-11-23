@@ -1,4 +1,20 @@
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "byte_container",
+    testonly = True,
+    hdrs = ["byte_container.hpp"],
+)
+
+cc_test(
+    name = "byte_container_test",
+    timeout = "short",
+    srcs = ["byte_container_test.cpp"],
+    deps = [
+        ":byte_container",
+        "//:boost_ut",
+    ],
+)
 
 cc_test(
     name = "decompress_test",
@@ -7,6 +23,5 @@ cc_test(
     deps = [
         "//:boost_ut",
         "//src:decompress",
-        "@boost_ut",
     ],
 )
