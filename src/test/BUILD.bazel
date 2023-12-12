@@ -1,12 +1,30 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//tools:compressed_file.bzl", "compressed_file")
 
 cc_test(
     name = "decompress_test",
     timeout = "short",
     srcs = ["decompress_test.cpp"],
+    data = [
+        ":starfleet.html.dynamic",
+        ":starfleet.html.fixed",
+    ],
     deps = [
         "//:boost_ut",
         "//src:decompress",
+        "@bazel_tools//tools/cpp/runfiles",
         "@boost_ut",
     ],
+)
+
+compressed_file(
+    name = "starfleet.html.dynamic",
+    src = "starfleet.html",
+    strategy = "dynamic",
+)
+
+compressed_file(
+    name = "starfleet.html.fixed",
+    src = "starfleet.html",
+    strategy = "fixed",
 )
