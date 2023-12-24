@@ -62,9 +62,8 @@ jobs:
     - run: |
         bazel \
           --bazelrc=.github/workflows/ci.bazelrc \
-          coverage \
-          --instrumentation_filter="-/:boost_ut" \
-          //...
+          run \
+          //tools:lcov_list
 
     - uses: codecov/codecov-action@v3
       with:

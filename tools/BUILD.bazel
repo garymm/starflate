@@ -1,3 +1,5 @@
+load("//tools:lcov.bzl", "lcov")
+
 genrule(
     name = "gen_verbose_clang_tidy",
     srcs = [],
@@ -21,4 +23,41 @@ py_binary(
     name = "deflate_compress",
     srcs = ["deflate_compress.py"],
     visibility = ["//:__subpackages__"],
+)
+
+lcov(
+    name = "lcov_list",
+    instrumented_targets = [
+        "//huffman",
+        "//src:decompress",
+    ],
+    lcov_opts = [
+        "--rc lcov_branch_coverage=1",
+        "--list",
+    ],
+    test_targets = [
+        "//huffman/test/...",
+        "//src/test/...",
+    ],
+)
+
+lcov(
+    name = "lcov_html",
+    instrumented_targets = [
+        "//huffman",
+        "//src:decompress",
+    ],
+    lcov_opts = [
+        "--show-details",
+        "--keep-descriptions",
+        "--branch-coverage",
+        "--highlight",
+        "--missed",
+        "--dark-mode",
+    ],
+    lcov_tool = "genhtml",
+    test_targets = [
+        "//huffman/test/...",
+        "//src/test/...",
+    ],
 )
