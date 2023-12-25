@@ -11,13 +11,15 @@ test --test_output=all
 test --test_verbose_timeout_warnings
 
 coverage --combined_report=lcov
-coverage --strategy=CoverageReport=local
-# At least some of this is needed for the coverage tool to work.
-coverage --experimental_split_coverage_postprocessing
-coverage --experimental_fetch_all_coverage_outputs
-coverage --remote_download_outputs=all
-coverage --experimental_remote_download_regex=.*/((testlogs/.*/_coverage/.*)|coverage.dat$|_coverage/_coverage_report.dat$)
-# Not sure why it doesn't work with clang. Should be possible.
-coverage --extra_toolchains=//toolchain:gcc
+# Clang is a bit faster.
+coverage --extra_toolchains=//toolchain:clang
+# Below is necessary to get coverage to work with Clang.
+# Based on https://github.com/fmeum/rules_jni/blob/main/tests/.bazelrc
+coverage --repo_env=BAZEL_LLVM_COV=%workspace%/bazel-starflate/external/llvm_toolchain/bin/llvm-cov
+coverage --repo_env=BAZEL_LLVM_PROFDATA=%workspace%/bazel-starflate/external/llvm_toolchain/bin/llvm-profdata
+coverage --repo_env=BAZEL_USE_LLVM_NATIVE_COVERAGE=1
+coverage --repo_env=GCOV=%workspace%/bazel-starflate/external/llvm_toolchain/bin/llvm-profdata
+coverage --experimental_generate_llvm_lcov
+
 # Needed because our tests are in a different package than the code they test.
 coverage --instrumentation_filter='//.*'
