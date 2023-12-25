@@ -68,11 +68,11 @@ http_archive(
 # Note: not correct on MacOS.
 LLVM_COLOR_FLAGS = ["-fdiagnostics-color=always" if "libinfo.so.5" in HOST_SYSTEM_LIBRARIES else ""]
 
-BAZEL_BOOTLIN_COMMIT = "10638e74e907689abf9b7dc81aad05c588879079"
+BAZEL_BOOTLIN_COMMIT = "d15e4b4c3a984668d1d6bd5f3ca032efecae5cb1"
 
 http_archive(
     name = "bazel_bootlin",
-    sha256 = "47bbb94a6277ff1ab579b23509ed6c076445b9d99195b4df0aba069298ae3f1c",
+    sha256 = "9019568dc57601719b964a82371835fdbb3673a60bacb1ea2e049bc2c01c0a5f",
     strip_prefix = "bazel_bootlin-%s" % BAZEL_BOOTLIN_COMMIT,
     url = "https://github.com/oliverlee/bazel_bootlin/archive/%s.tar.gz" % BAZEL_BOOTLIN_COMMIT,
 )
