@@ -30,3 +30,8 @@ build --workspace_status_command=tools/bazel_workspace_status.sh
 # when triggering builds using different shells on the same machine.
 # https://stackoverflow.com/questions/74881594/bazel-builds-from-scratch-ignoring-cache
 build --incompatible_strict_action_env
+
+coverage --combined_report=lcov
+coverage --experimental_generate_llvm_lcov
+# Needed because our tests are in a different package than the code they test.
+coverage --instrumentation_filter='//.*'
