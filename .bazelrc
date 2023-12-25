@@ -1,4 +1,5 @@
-build --incompatible_enable_cc_toolchain_resolution
+build --enable_bzlmod=false
+
 build --action_env="BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1"
 
 build:clang --extra_toolchains=//toolchain:clang
