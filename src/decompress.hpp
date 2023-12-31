@@ -2,7 +2,6 @@
 
 #include "huffman/huffman.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -70,11 +69,13 @@ auto decompress(
               compressed_bits.size(), std::size_t{len} * CHAR_BIT) and
           "not enough bits");
 
-      // TODO: this is probably really slow because back_inserter means we can
-      // only copy a single byte at a time. We should look into options for bulk
-      // copying.
-      std::copy_n(
-          compressed_bits.byte_data(), len, std::back_inserter(decompressed));
+      // Using vector::insert instead of std::copy to allow for bulk copying.
+      decompressed.insert(
+          decompressed.end(),
+          compressed_bits.byte_data(),
+          compressed_bits
+                  .byte_data() +  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+              len);
       compressed_bits.consume(CHAR_BIT * len);
     } else {
       // TODO: implement
