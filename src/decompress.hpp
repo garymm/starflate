@@ -40,7 +40,16 @@ auto read_header(huffman::bit_span& compressed_bits)
 
 using namespace huffman::literals;
 
-// Inspired by https://docs.python.org/3/library/zlib.html#zlib.decompress
+/// Decompresses a DEFLATE compressed span of bytes.
+///
+/// @param compressed The compressed bytes.
+/// @param alloc The allocator to use for the decompressed bytes.
+///   To control the max output size, use a custom allocator that throws an
+///   exception when the max size is exceeded.
+///
+/// @returns The decompressed bytes, or an error.
+/// @tparam N The size of the compressed bytes.
+/// @tparam ByteAllocator The allocator to use for the decompressed bytes.
 template <std::size_t N, class ByteAllocator = std::allocator<std::byte>>
 auto decompress(
     std::span<const std::byte, N> compressed, ByteAllocator alloc = {})
@@ -77,8 +86,6 @@ auto decompress(
                   .byte_data() +  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
               len);
       compressed_bits.consume(CHAR_BIT * len);
-    } else if (header->type == FixedHuffman) {
-
     } else {
       // TODO: implement
       return std::unexpected{DecompressError::Error};
