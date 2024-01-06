@@ -2,6 +2,7 @@
 
 #include "huffman/huffman.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -17,6 +18,7 @@ enum class DecompressError : std::uint8_t
   Error,
   InvalidBlockHeader,
   NoCompressionLenMismatch,
+  InvalidLitOrLen,
 };
 
 namespace detail {
@@ -36,6 +38,19 @@ struct BlockHeader
 
 auto read_header(huffman::bit_span& compressed_bits)
     -> std::expected<BlockHeader, DecompressError>;
+
+struct LengthInfo
+{
+  std::uint8_t extra_bits;
+  std::uint8_t base;
+};
+
+extern const huffman::table<std::uint16_t, 288> fixed_table;
+extern const std::array<LengthInfo, 28> length_infos;
+constexpr auto lit_or_len_end_of_block = std::uint16_t{256};
+constexpr auto lit_or_len_max = std::uint16_t{285};
+constexpr auto lit_or_len_max_decoded = std::uint16_t{258};
+
 }  // namespace detail
 
 using namespace huffman::literals;
@@ -82,10 +97,37 @@ auto decompress(
       decompressed.insert(
           decompressed.end(),
           compressed_bits.byte_data(),
-          compressed_bits
-                  .byte_data() +  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-              len);
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+          compressed_bits.byte_data() + len);
       compressed_bits.consume(CHAR_BIT * len);
+    } else if (header->type == FixedHuffman) {
+      for (std::uint16_t lit_or_len{};
+           lit_or_len != detail::lit_or_len_end_of_block;) {
+        const auto decoded =
+            huffman::decode_one(detail::fixed_table, compressed_bits);
+        if (not decoded.encoded_size) {
+          return std::unexpected{DecompressError::InvalidLitOrLen};
+        }
+        lit_or_len = decoded.symbol;
+        compressed_bits.consume(decoded.encoded_size);
+        if (lit_or_len < detail::lit_or_len_end_of_block) {
+          decompressed.push_back(static_cast<std::byte>(lit_or_len));
+        } else if (lit_or_len == detail::lit_or_len_end_of_block) {
+          break;
+        } else if (lit_or_len > detail::lit_or_len_max) {
+          return std::unexpected{DecompressError::InvalidLitOrLen};
+        }
+        std::uint16_t len{};
+        if (lit_or_len == detail::lit_or_len_max) {
+          len = detail::lit_or_len_max_decoded;
+        } else {
+          const auto len_idx =
+              static_cast<size_t>(lit_or_len - detail::lit_or_len_end_of_block);
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+          const auto& len_info = detail::length_infos[len_idx];
+          len = len_info.base + compressed_bits.pop_n(len_info.extra_bits);
+        }
+      }
     } else {
       // TODO: implement
       return std::unexpected{DecompressError::Error};
