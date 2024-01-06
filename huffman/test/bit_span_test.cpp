@@ -116,6 +116,9 @@ auto main() -> int
       if (std::cmp_less(n, initial_bits.size())) {
         expect(nth_bit(n) == bits[0]);
       }
+      if (n == 0) {
+        expect(initial_bits.byte_data() == bits.byte_data());
+      }
     } else {
       expect(aborts([&] { bits.consume(n); }));
     }
@@ -172,6 +175,15 @@ auto main() -> int
     expect(eq(got_8, expected_8));
 
     expect(aborts([&] { span.pop_8(); }));
+
+    span = huffman::bit_span{data};
+    const std::uint16_t got_5{span.pop_n(5)};
+    constexpr std::uint16_t expected_5{0b01010};
+    expect(eq(got_5, expected_5));
+
+    const std::uint16_t got_3{span.pop_n(3)};
+    constexpr std::uint16_t expected_3{0b101};
+    expect(eq(got_3, expected_3));
     // NOLINTEND(readability-magic-numbers)
   };
 }
