@@ -17,11 +17,12 @@ namespace starflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
 class bit_span : public std::ranges::view_interface<bit_span>
 {
+
+public:
+  // TODO: make private
   const std::byte* data_{nullptr};
   std::size_t bit_size_{};
   std::uint8_t bit_offset_{};  // always less than CHAR_BIT
-
-public:
   /// An iterator over the bits in a bit_span.
   class iterator : public detail::iterator_interface<iterator>
   {
@@ -141,6 +142,25 @@ public:
   constexpr auto pop_8() -> std::uint8_t { return pop<std::uint8_t>(); }
 
   constexpr auto pop_16() -> std::uint16_t { return pop<std::uint16_t>(); }
+
+  /// Removes n bits from the beginning of this and returns them.
+  ///
+  /// @pre this contains at least n bits.
+  ///
+  constexpr auto pop_n(std::uint8_t n) -> std::uint16_t
+  {
+    assert(n <= 16);
+    assert(n <= bit_size_);
+    auto iter = begin();
+    std::uint16_t res{};
+    for (std::uint8_t i{}; i < n; i++) {
+      res |= static_cast<std::uint16_t>(
+          static_cast<std::uint16_t>(static_cast<bool>(*iter)) << i);
+      iter += 1;
+    }
+    consume(n);  // invalidates iter, so must come after the loop
+    return res;
+  }
 
   /// Consumes the given number of bits. Advances the start of the view.
   ///

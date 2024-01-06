@@ -2,6 +2,7 @@
 
 #include "huffman/huffman.hpp"
 
+#include <array>
 #include <cstddef>
 #include <expected>
 #include <ranges>
@@ -18,6 +19,8 @@ enum class DecompressStatus : std::uint8_t
   NoCompressionLenMismatch,
   DstTooSmall,
   SrcTooSmall,
+  InvalidLitOrLen,
+  InvalidDistance,
 };
 
 namespace detail {
@@ -37,6 +40,30 @@ struct BlockHeader
 
 auto read_header(huffman::bit_span& compressed_bits)
     -> std::expected<BlockHeader, DecompressStatus>;
+
+struct LengthInfo
+{
+  std::uint8_t extra_bits;
+  std::uint16_t base;
+};
+
+extern const huffman::table<std::uint16_t, 288> fixed_table;
+extern const std::array<LengthInfo, 28> length_infos;
+constexpr auto lit_or_len_end_of_block = std::uint16_t{256};
+constexpr auto lit_or_len_max = std::uint16_t{285};
+constexpr auto lit_or_len_max_decoded = std::uint16_t{258};
+
+/// Copies n bytes from src to dst, repeating the source data if necessary.
+///
+/// From the standard section 3.2.3:
+/// "Note also that the referenced string may overlap the current
+///  position; for example, if the last 2 bytes decoded have values
+///  X and Y, a string reference with <length = 5, distance = 2>
+///  adds X,Y,X,Y,X to the output stream."
+void copy_n(
+    std::span<const std::byte>::iterator src,
+    std::uint16_t n,
+    std::span<std::byte>::iterator dst);
 }  // namespace detail
 
 /// Decompresses the given source data into the destination buffer.

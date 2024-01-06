@@ -29,8 +29,12 @@ auto read_runfile(const char* argv0, const std::string& path)
   const std::string abs_path{runfiles->Rlocation(path)};
 
   std::ifstream file{abs_path, std::ios::binary};
-  ::boost::ut::expect(::boost::ut::fatal(file.is_open()))
-      << "failed to open " << path;
+  if (not file.is_open()) {
+    // ::boost::ut::fatal swallows log messages, so log before.
+    ::boost::ut::log("failed to open file: " + abs_path);
+    ::boost::ut::expect(::boost::ut::fatal(false));
+  }
+
   std::vector<char> chars(
       (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
@@ -52,7 +56,6 @@ auto main(int, char* argv[]) -> int
 {
   using ::boost::ut::eq;
   using ::boost::ut::expect;
-  using ::boost::ut::fatal;
   using ::boost::ut::test;
   using namespace starflate;
 
@@ -139,6 +142,15 @@ auto main(int, char* argv[]) -> int
     expect(header.has_value())
         << "got error: " << static_cast<int>(header.error());
     expect(header->type == detail::BlockType::FixedHuffman);
+
+    const std::vector<std::byte> expected_bytes =
+        read_runfile(*argv, "starflate/src/test/starfleet.html");
+    std::vector<std::byte> dst(expected_bytes.size());
+    const auto status = decompress(input_bytes, dst);
+    expect(status == DecompressStatus::Success)
+        << "got error code: " << static_cast<int>(status);
+    expect(std::ranges::equal(dst, expected_bytes))
+        << "decompressed does not match expected";
   };
 
   test("dynamic huffman") = [argv] {
@@ -150,5 +162,13 @@ auto main(int, char* argv[]) -> int
     expect(header.has_value())
         << "got error: " << static_cast<int>(header.error());
     expect(header->type == detail::BlockType::DynamicHuffman);
+  };
+
+  test("copy_n") = [] {
+    auto src_and_dst = huffman::byte_array(1, 2, 0, 0, 0, 0);
+    const auto src_span = std::span<const std::byte>{src_and_dst};
+    const auto dst_span = std::span<std::byte>{src_and_dst}.subspan(2);
+    detail::copy_n(src_span.begin(), 3, dst_span.begin());
+    expect(eq(src_and_dst, huffman::byte_array(1, 2, 1, 2, 1, 0)));
   };
 };
