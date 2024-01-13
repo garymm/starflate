@@ -2,9 +2,9 @@ name: check
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ "*" ]
+    branches: ["*"]
 
 jobs:
   test:
@@ -13,64 +13,92 @@ jobs:
       fail-fast: false
       matrix:
         toolchain: [gcc, clang]
-        feature: ['', asan, tsan, ubsan]
+        feature: ["", asan, tsan, ubsan]
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: mount bazel cache
-      uses: actions/cache@v3
-      with:
-        path: "~/.cache/bazel"
-        key: bazel-test-${{ matrix.toolchain }}-${{ matrix.feature }}
+      - name: muont bazel disk cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-test-${{ matrix.toolchain }}-${{ matrix.feature }}
 
-    - name: install libtinfo5
-      # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
-      # runners already have `libtinfo.so.6` installed. We just create a
-      # symlink since it's faster than installing libtinfo5.
-      # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
-      run: |
-        sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
+      - name: mount bazel other caches
+        # restore only on these jobs because GitHub free doesn't
+        # give us much cache space.
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            "~/.cache/bazel_install_base"
+            "~/.cache/bazel_output_base/external"
+            "~/.cache/bazel_repository_cache"
+            "~/.cache/bazelisk"
+          key: bazel-other
 
-    - run: |
-        bazel \
-          --bazelrc=.github/workflows/ci.bazelrc \
-          test \
-          --config=${{ matrix.toolchain }} \
-          --features=${{ matrix.feature }} \
-          //...
+      - name: install libtinfo5
+        # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
+        # runners already have `libtinfo.so.6` installed. We just create a
+        # symlink since it's faster than installing libtinfo5.
+        # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
+        run: |
+          sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
+
+      - run: |
+          bazel \
+            --bazelrc=.github/workflows/ci.bazelrc \
+            test \
+            --config=${{ matrix.toolchain }} \
+            --features=${{ matrix.feature }} \
+            //...
 
   coverage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: mount bazel cache
-      uses: actions/cache@v3
-      with:
-        path: "~/.cache/bazel"
-        key: bazel-coverage
+      - name: muont bazel disk cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-coverage
 
-    - name: install libtinfo5
-      # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
-      # runners already have `libtinfo.so.6` installed. We just create a
-      # symlink since it's faster than installing libtinfo5.
-      # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
-      run: |
-        sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
+      - name: mount bazel other caches
+        # This is the only one that writes to the cache, not restore.
+        # The contents of this stuff should not be dependent on build flags,
+        # so can be shared across all jobs.
+        # Somewhat arbitrary to hsve this be the one that writes to the cache;
+        # just taking advantage of the fact that this one is
+        # not a matrix and so only has one job.
+        uses: actions/cache@v3
+        with:
+          path: |
+            "~/.cache/bazel_install_base"
+            "~/.cache/bazel_output_base/external"
+            "~/.cache/bazel_repository_cache"
+            "~/.cache/bazelisk"
+          key: bazel-other
 
-    - run: |
-        bazel \
-          --bazelrc=.github/workflows/ci.bazelrc \
-          coverage \
-          --instrumentation_filter="-/:boost_ut" \
-          //...
+      - name: install libtinfo5
+        # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
+        # runners already have `libtinfo.so.6` installed. We just create a
+        # symlink since it's faster than installing libtinfo5.
+        # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
+        run: |
+          sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
 
-    - uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./bazel-out/_coverage/_coverage_report.dat
-        fail_ci_if_error: true
+      - run: |
+          bazel \
+            --bazelrc=.github/workflows/ci.bazelrc \
+            coverage \
+            --instrumentation_filter="-/:boost_ut" \
+            //...
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./bazel-out/_coverage/_coverage_report.dat
+          fail_ci_if_error: true
 
   build:
     runs-on: ubuntu-latest
@@ -78,50 +106,70 @@ jobs:
       fail-fast: false
       matrix:
         flag:
-          - '--config=clang-format'
-          - '--config=clang-tidy'
-          - '--config=verbose-clang-tidy'
-          - '--compilation_mode=opt'
+          - "--config=clang-format"
+          - "--config=clang-tidy"
+          - "--config=verbose-clang-tidy"
+          - "--compilation_mode=opt"
         exclude:
           - flag: ${{ github.event_name == 'pull_request' && '--config=verbose-clang-tidy' || 'dummy' }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: mount bazel cache
-      uses: actions/cache@v3
-      with:
-        path: "~/.cache/bazel"
-        key: bazel-build-${{ matrix.flag }}
+      - name: muont bazel disk cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-build-${{ matrix.flag }}
 
-    - name: install libtinfo5
-      # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
-      # runners already have `libtinfo.so.6` installed. We just create a
-      # symlink since it's faster than installing libtinfo5.
-      # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
-      run: |
-        sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
+      - name: mount bazel other caches
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            "~/.cache/bazel_install_base"
+            "~/.cache/bazel_output_base"
+            "~/.cache/bazel_repository_cache"
+            "~/.cache/bazelisk"
+          key: bazel-other
 
-    - run: |
-        bazel \
-          --bazelrc=.github/workflows/ci.bazelrc \
-          build \
-          ${{ matrix.flag }} \
-          //...
+      - name: install libtinfo5
+        # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
+        # runners already have `libtinfo.so.6` installed. We just create a
+        # symlink since it's faster than installing libtinfo5.
+        # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
+        run: |
+          sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
+
+      - run: |
+          bazel \
+            --bazelrc=.github/workflows/ci.bazelrc \
+            build \
+            ${{ matrix.flag }} \
+            //...
 
   buildifier:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: mount bazel cache
-      uses: actions/cache@v3
-      with:
-        path: "~/.cache/bazel"
-        key: bazel-buildifier
+      - name: muont bazel disk cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-buildifier
 
-    - run: |
-        bazel \
-          --bazelrc=.github/workflows/ci.bazelrc \
-          run \
-          //:buildifier.check
+      - name: mount bazel other caches
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            "~/.cache/bazel_install_base"
+            "~/.cache/bazel_output_base"
+            "~/.cache/bazel_repository_cache"
+            "~/.cache/bazelisk"
+          key: bazel-other
+
+      - run: |
+          bazel \
+            --bazelrc=.github/workflows/ci.bazelrc \
+            run \
+            //:buildifier.check
