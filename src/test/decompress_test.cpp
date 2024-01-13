@@ -83,6 +83,12 @@ auto main(int, char* argv[]) -> int
         << "got type: " << static_cast<int>(header->type);
   };
 
+  test("decompress invalid header") = [] -> void {
+    const auto result =
+        decompress(std::span<const std::byte>{}, std::span<std::byte>{});
+    expect(result.error() == DecompressError::InvalidBlockHeader);
+  };
+
   test("no compression") = [] {
     constexpr auto compressed = huffman::byte_array(
         0b000,  // no compression, not final
