@@ -3,11 +3,9 @@
 #include "huffman/huffman.hpp"
 
 #include <cstddef>
-#include <cstdint>
 #include <expected>
-#include <memory>
+#include <ranges>
 #include <span>
-#include <vector>
 
 namespace starflate {
 
@@ -38,63 +36,32 @@ auto read_header(huffman::bit_span& compressed_bits)
     -> std::expected<BlockHeader, DecompressError>;
 }  // namespace detail
 
-using namespace huffman::literals;
-
-// Inspired by https://docs.python.org/3/library/zlib.html#zlib.decompress
-template <std::size_t N, class ByteAllocator = std::allocator<std::byte>>
-auto decompress(
-    std::span<const std::byte, N> compressed, ByteAllocator alloc = {})
-    -> std::expected<std::vector<std::byte, ByteAllocator>, DecompressError>
+/// @struct DecompressResult
+/// @brief A structure representing the result of a decompression operation.
+///
+struct DecompressResult
 {
+  std::span<const std::byte> remaining_src;  ///< Remaining source data after
+                                             ///< decompression.
+  std::span<std::byte> remaining_dst;  ///< Remaining space in the destination
+                                       ///< buffer after decompression.
+};
 
-  using enum detail::BlockType;
-  auto decompressed = std::vector<std::byte, ByteAllocator>(alloc);
+/// Decompresses the given source data into the destination buffer.
+///
+/// @param src The source data to decompress.
+/// @param dst The destination buffer to store the decompressed data.
+/// @return An expected value containing the decompression result if successful,
+/// or an error code if failed.
+///
+auto decompress(std::span<const std::byte> src, std::span<std::byte> dst)
+    -> std::expected<DecompressResult, DecompressError>;
 
-  huffman::bit_span compressed_bits{compressed};
-  while (true) {
-    const auto header = detail::read_header(compressed_bits);
-    if (not header) {
-      return std::unexpected{header.error()};
-    }
-    if (header->type == NoCompression) {  // no compression
-      // Any bits of input up to the next byte boundary are ignored.
-      compressed_bits.consume_to_byte_boundary();
-      const std::uint16_t len = compressed_bits.pop_16();
-      const std::uint16_t nlen = compressed_bits.pop_16();
-      if (len != static_cast<std::uint16_t>(~nlen)) {
-        return std::unexpected{DecompressError::NoCompressionLenMismatch};
-      }
-      assert(
-          std::cmp_greater_equal(
-              compressed_bits.size(), std::size_t{len} * CHAR_BIT) and
-          "not enough bits");
-
-      // Using vector::insert instead of std::copy to allow for bulk copying.
-      decompressed.insert(
-          decompressed.end(),
-          compressed_bits.byte_data(),
-          compressed_bits
-                  .byte_data() +  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-              len);
-      compressed_bits.consume(CHAR_BIT * len);
-    } else {
-      // TODO: implement
-      return std::unexpected{DecompressError::Error};
-    }
-    if (header->final) {
-      break;
-    }
-  }
-  return decompressed;
-}
-
-template <
-    std::ranges::contiguous_range R,
-    class ByteAllocator = std::allocator<std::byte>>
+template <std::ranges::contiguous_range R>
   requires std::same_as<std::ranges::range_value_t<R>, std::byte>
-auto decompress(const R& compressed, ByteAllocator alloc = {})
+auto decompress(const R& src, std::span<std::byte> dst)
 {
-  return decompress(std::span{compressed.data(), compressed.size()}, alloc);
+  return decompress(std::span{src.data(), src.size()}, dst);
 }
 
 }  // namespace starflate

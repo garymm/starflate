@@ -1,3 +1,4 @@
+#include "huffman/huffman.hpp"
 #include "huffman/src/utility.hpp"
 #include "src/decompress.hpp"
 #include "tools/cpp/runfiles/runfiles.h"
@@ -94,13 +95,15 @@ auto main(int, char* argv[]) -> int
         'l',
         'o');
 
-    const auto expected = byte_vector('h', 'e', 'l', 'l', 'o');
-
-    const auto actual = decompress(compressed);
-    expect(fatal(actual.has_value()))
-        << "got error code: " << static_cast<std::int32_t>(actual.error());
-    expect(fatal(actual->size() == expected.size()));
-    expect(*actual == expected);
+    constexpr auto expected = huffman::byte_array('h', 'e', 'l', 'l', 'o');
+    std::array<std::byte, 5> dst_array{};
+    std::span<std::byte> dst{dst_array};
+    const auto result = decompress(compressed, dst);
+    expect(fatal(result.has_value()))
+        << "got error code: " << static_cast<std::int32_t>(result.error());
+    expect(result->remaining_src.empty());
+    expect(result->remaining_dst.empty());
+    expect(dst_array == expected);
   };
 
   test("fixed huffman") = [argv] {
