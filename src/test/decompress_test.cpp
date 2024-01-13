@@ -1,9 +1,11 @@
+#include "huffman/huffman.hpp"
 #include "huffman/src/utility.hpp"
 #include "src/decompress.hpp"
 #include "tools/cpp/runfiles/runfiles.h"
 
 #include <boost/ut.hpp>
 
+#include <array>
 #include <fstream>
 #include <iterator>
 #include <memory>
@@ -83,24 +85,50 @@ auto main(int, char* argv[]) -> int
 
   test("no compression") = [] {
     constexpr auto compressed = huffman::byte_array(
-        0b001,
-        5,
-        0,  // len = 5
-        ~5,
-        ~0,  // nlen = 5
-        'h',
+        0b000,  // no compression, not final
+        4,
+        0,  // len = 4
+        ~4,
+        ~0,  // nlen = 4
+        'r',
+        'o',
+        's',
         'e',
-        'l',
-        'l',
-        'o');
+        0b001,  // no compression, final
+        3,
+        0,  // len = 3
+        ~3,
+        ~0,  // nlen = 3
+        'b',
+        'u',
+        'd');
 
-    const auto expected = byte_vector('h', 'e', 'l', 'l', 'o');
-
-    const auto actual = decompress(compressed);
-    expect(fatal(actual.has_value()))
-        << "got error code: " << static_cast<std::int32_t>(actual.error());
-    expect(fatal(actual->size() == expected.size()));
-    expect(*actual == expected);
+    const std::array<std::span<std::byte>, 2> expecteds{
+        std::span<std::byte>{
+            huffman::byte_array('r', 'o', 's', 'e').begin(), 4},
+        std::span<std::byte>{huffman::byte_array('b', 'u', 'd').begin(), 3}};
+    std::array<std::byte, 4> dst_array{};
+    std::span<std::byte> dst{dst_array};
+    std::span<const std::byte> src{compressed};
+    for (std::size_t i = 0; i < expecteds.size(); ++i) {
+      const auto result = decompress(src, dst);
+      expect(result.has_value())
+          << "got error code: " << static_cast<std::int32_t>(result.error());
+      if (i == 0) {
+        expect(not result->remaining_src.empty());
+        expect(result->min_next_dst_size == expecteds.at(1).size());
+      } else {
+        expect(result->remaining_src.empty());
+        expect(result->min_next_dst_size == 0);
+      }
+      const auto expected = expecteds.at(i);
+      expect(result->dst_written == expected.size());
+      expect(std::equal(
+          dst.begin(),
+          dst.begin() + static_cast<std::ptrdiff_t>(expected.size()),
+          expected.begin()));
+      src = result->remaining_src;
+    }
   };
 
   test("fixed huffman") = [argv] {
