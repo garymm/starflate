@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: muont bazel disk cache
+      - name: mount bazel disk cache
         uses: actions/cache@v3
         with:
           path: "~/.cache/bazel_disk_cache"
@@ -67,7 +67,7 @@ jobs:
         # This is the only one that writes to the cache, not restore.
         # The contents of this stuff should not be dependent on build flags,
         # so can be shared across all jobs.
-        # Somewhat arbitrary to hsve this be the one that writes to the cache;
+        # Somewhat arbitrary to have this be the one that writes to the cache;
         # just taking advantage of the fact that this one is
         # not a matrix and so only has one job.
         uses: actions/cache@v3
