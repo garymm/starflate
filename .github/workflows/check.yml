@@ -18,11 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: mount bazel disk cache
-        uses: actions/cache@v3
-        with:
-          path: "~/.cache/bazel_disk_cache"
-          key: bazel-disk-test-${{ matrix.toolchain }}-${{ matrix.feature }}
+      - name: set buildbuddy-api-key
+        run: |
+          echo 'build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}' >> .bazelrc
+
+      - name: set bazel upload flags
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo 'build --noremote_upload_local_results' >> .bazelrc
 
       - name: mount bazel other caches
         # restore only on these jobs because GitHub free doesn't
@@ -57,11 +60,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: muont bazel disk cache
-        uses: actions/cache@v3
-        with:
-          path: "~/.cache/bazel_disk_cache"
-          key: bazel-disk-coverage
+      - name: set buildbuddy-api-key
+        run: |
+          echo 'build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}' >> .bazelrc
+
+      - name: set bazel upload flags
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo 'build --noremote_upload_local_results' >> .bazelrc
 
       - name: mount bazel other caches
         # This is the only one that writes to the cache, not restore.
@@ -71,6 +77,18 @@ jobs:
         # just taking advantage of the fact that this one is
         # not a matrix and so only has one job.
         uses: actions/cache@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          path: |
+            "~/.cache/bazel_install_base"
+            "~/.cache/bazel_output_base/external"
+            "~/.cache/bazel_repository_cache"
+            "~/.cache/bazelisk"
+          key: bazel-other
+
+      - name: mount bazel other caches
+        uses: actions/cache/restore@v3
+        if: github.ref != 'refs/heads/master'
         with:
           path: |
             "~/.cache/bazel_install_base"
@@ -116,11 +134,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: muont bazel disk cache
-        uses: actions/cache@v3
-        with:
-          path: "~/.cache/bazel_disk_cache"
-          key: bazel-disk-build-${{ matrix.flag }}
+      - name: set buildbuddy-api-key
+        run: |
+          echo 'build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}' >> .bazelrc
+
+      - name: set bazel upload flags
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo 'build --noremote_upload_local_results' >> .bazelrc
 
       - name: mount bazel other caches
         uses: actions/cache/restore@v3
@@ -152,11 +173,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: muont bazel disk cache
-        uses: actions/cache@v3
-        with:
-          path: "~/.cache/bazel_disk_cache"
-          key: bazel-disk-buildifier
+      - name: set buildbuddy-api-key
+        run: |
+          echo 'build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}' >> .bazelrc
+
+      - name: set bazel upload flags
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo 'build --noremote_upload_local_results' >> .bazelrc
 
       - name: mount bazel other caches
         uses: actions/cache/restore@v3

@@ -35,3 +35,7 @@ coverage --combined_report=lcov
 coverage --experimental_generate_llvm_lcov
 # Needed because our tests are in a different package than the code they test.
 coverage --instrumentation_filter='//.*'
+
+# buildbuddy suggestions. Doesn't hurt to have them always.
+build --nolegacy_important_outputs
+build --remote_cache_compression
