@@ -1,11 +1,14 @@
-# This is from Bazel's former travis setup, to avoid blowing up the RAM usage.
-startup --host_jvm_args=-Xmx2500m
-
-build --show_timestamps
 build --announce_rc
 build --color=yes
+build --show_timestamps
 build --terminal_columns=120
-build --remote_download_minimal
+
+common --disk_cache=/home/runner/.cache/bazel_disk_cache
+common --repository_cache=/home/runner/.cache/bazel_repository_cache
+
+startup --host_jvm_args=-Xmx2500m # avoid blowing up the RAM usage.
+startup --install_base=/home/runner/.cache/bazel_install_base
+startup --output_base=/home/runner/.cache/bazel_output_base
 
 test --test_output=all
 test --test_verbose_timeout_warnings
