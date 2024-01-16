@@ -20,6 +20,14 @@ jobs:
 
       - name: mount bazel disk cache
         uses: actions/cache@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-test-${{ matrix.toolchain }}-${{ matrix.feature }}
+
+      - name: restore bazel disk cache
+        uses: actions/cache/restore@v3
+        if: github.ref != 'refs/heads/master'
         with:
           path: "~/.cache/bazel_disk_cache"
           key: bazel-disk-test-${{ matrix.toolchain }}-${{ matrix.feature }}
@@ -57,8 +65,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: muont bazel disk cache
+      - name: mount bazel disk cache
         uses: actions/cache@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-coverage
+
+      - name: restore bazel disk cache
+        uses: actions/cache/restore@v3
+        if: github.ref != 'refs/heads/master'
         with:
           path: "~/.cache/bazel_disk_cache"
           key: bazel-disk-coverage
@@ -71,6 +87,18 @@ jobs:
         # just taking advantage of the fact that this one is
         # not a matrix and so only has one job.
         uses: actions/cache@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          path: |
+            "~/.cache/bazel_install_base"
+            "~/.cache/bazel_output_base/external"
+            "~/.cache/bazel_repository_cache"
+            "~/.cache/bazelisk"
+          key: bazel-other
+
+      - name: mount bazel other caches
+        uses: actions/cache/restore@v3
+        if: github.ref != 'refs/heads/master'
         with:
           path: |
             "~/.cache/bazel_install_base"
@@ -118,6 +146,14 @@ jobs:
 
       - name: muont bazel disk cache
         uses: actions/cache@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-build-${{ matrix.flag }}
+
+      - name: restore bazel disk cache
+        uses: actions/cache/restore@v3
+        if: github.ref != 'refs/heads/master'
         with:
           path: "~/.cache/bazel_disk_cache"
           key: bazel-disk-build-${{ matrix.flag }}
@@ -152,8 +188,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: muont bazel disk cache
+      - name: mount bazel disk cache
         uses: actions/cache@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          path: "~/.cache/bazel_disk_cache"
+          key: bazel-disk-buildifier
+
+      - name: restore bazel disk cache
+        uses: actions/cache/restore@v3
+        if: github.ref != 'refs/heads/master'
         with:
           path: "~/.cache/bazel_disk_cache"
           key: bazel-disk-buildifier
