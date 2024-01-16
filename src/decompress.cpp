@@ -1,10 +1,11 @@
 #include "decompress.hpp"
 
-#include "huffman/huffman.hpp"
+#include <cstdint>
+#include <iterator>
+#include <utility>
 
-#include <expected>
-
-namespace starflate::detail {
+namespace starflate {
+namespace detail {
 
 auto valid(BlockType type) -> bool
 {
@@ -29,4 +30,54 @@ auto read_header(huffman::bit_span& compressed_bits)
   compressed_bits.consume(3);
   return BlockHeader{final, type};
 }
-}  // namespace starflate::detail
+
+}  // namespace detail
+
+auto decompress(std::span<const std::byte> src, std::span<std::byte> dst)
+    -> std::expected<DecompressResult, DecompressError>
+{
+  using enum detail::BlockType;
+
+  huffman::bit_span src_bits{src};
+  std::size_t dst_written{};
+  for (bool was_final = false; not was_final;) {
+    const auto header = detail::read_header(src_bits);
+    if (not header) {
+      return std::unexpected{header.error()};
+    }
+    was_final = header->final;
+    if (header->type == NoCompression) {  // no compression
+      // Any bits of input up to the next byte boundary are ignored.
+      src_bits.consume_to_byte_boundary();
+      const std::uint16_t len = src_bits.pop_16();
+      const std::uint16_t nlen = src_bits.pop_16();
+      if (len != static_cast<std::uint16_t>(~nlen)) {
+        return std::unexpected{DecompressError::NoCompressionLenMismatch};
+      }
+      // TODO: should we return an error instead of assert?
+      assert(
+          std::cmp_greater_equal(
+              src_bits.size(), std::size_t{len} * CHAR_BIT) and
+          "not enough bits in src");
+
+      if (std::ranges::size(dst) < len) {
+        return DecompressResult{src, dst_written, len};
+      }
+
+      std::copy_n(src_bits.byte_data(), len, dst.begin());
+      src_bits.consume(CHAR_BIT * len);
+      dst = dst.subspan(len);
+      dst_written += len;
+    } else {
+      // TODO: implement
+      return std::unexpected{DecompressError::Error};
+    }
+    const auto distance =
+        std::distance(std::ranges::data(src), src_bits.byte_data());
+    assert(distance >= 0 and "distance must be positive");
+    src = src.subspan(static_cast<size_t>(distance));
+  }
+  return DecompressResult{src, dst_written, 0};
+}
+
+}  // namespace starflate
