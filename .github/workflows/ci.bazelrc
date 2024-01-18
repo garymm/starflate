@@ -3,7 +3,12 @@ build --color=yes
 build --show_timestamps
 build --terminal_columns=120
 
-common --disk_cache=/home/runner/.cache/bazel_disk_cache
+# remote cache through buildbuddy
+build --bes_results_url=https://app.buildbuddy.io/invocation/
+build --bes_backend=grpcs://remote.buildbuddy.io
+build --remote_cache=grpcs://remote.buildbuddy.io
+build --remote_timeout=3600
+
 common --repository_cache=/home/runner/.cache/bazel_repository_cache
 
 startup --host_jvm_args=-Xmx2500m # avoid blowing up the RAM usage.
