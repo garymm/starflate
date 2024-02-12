@@ -54,11 +54,11 @@ auto decompress(std::span<const std::byte> src, std::span<std::byte> dst)
       if (len != static_cast<std::uint16_t>(~nlen)) {
         return DecompressStatus::NoCompressionLenMismatch;
       }
-      // TODO: should we return an error instead of assert?
-      assert(
-          std::cmp_greater_equal(
-              src_bits.size(), std::size_t{len} * CHAR_BIT) and
-          "not enough bits in src");
+      // Surprisingly size() does not return size_t on libstdc++ 13, hence cast.
+      if (static_cast<size_t>(src_bits.size()) <
+          std::size_t{len} * std::size_t{CHAR_BIT}) {
+        return DecompressStatus::SrcTooSmall;
+      }
 
       if (dst.size() < len) {
         return DecompressStatus::DstTooSmall;
