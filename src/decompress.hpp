@@ -17,6 +17,7 @@ enum class DecompressStatus : std::uint8_t
   InvalidBlockHeader,
   NoCompressionLenMismatch,
   DstTooSmall,
+  SrcTooSmall,
 };
 
 namespace detail {
