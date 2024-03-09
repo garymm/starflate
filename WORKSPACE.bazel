@@ -98,13 +98,13 @@ bootlin_toolchain(
     libc_impl = "glibc",
 )
 
-BAZEL_TOOLCHAIN_VERSION = "ade23e0e37c5308162c012a4f4224459c1c4fa22"
+TOOLCHAINS_LLVM_VERSION = "bba94f8138ab454d70afcd263788b34e2801e2ba"
 
 http_archive(
-    name = "bazel_toolchain",
-    sha256 = "968e507ce913b93971aeb77b4b0a96f7b59b1f51cbaae57aefef4c573776ed56",
-    strip_prefix = "bazel-toolchain-%s" % BAZEL_TOOLCHAIN_VERSION,
-    url = "https://github.com/grailbio/bazel-toolchain/archive/%s.tar.gz" % BAZEL_TOOLCHAIN_VERSION,
+    name = "toolchains_llvm",
+    integrity = "sha256-IyBbm0rakJat7jSGvZ65xVGS2xQQhbXvmx8Q5EA5wlA=",
+    strip_prefix = "toolchains_llvm-%s" % TOOLCHAINS_LLVM_VERSION,
+    url = "https://github.com/bazel-contrib/toolchains_llvm/archive/%s.tar.gz" % TOOLCHAINS_LLVM_VERSION,
 )
 
 load("//tools:llvm_toolchain_dependencies.bzl", "llvm_toolchain_dependencies")
