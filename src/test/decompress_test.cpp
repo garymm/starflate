@@ -57,12 +57,12 @@ auto main(int, char* argv[]) -> int
   test("read_header") = [] -> void {
     huffman::bit_span empty{nullptr, 0, 0};
     expect(detail::read_header(empty).error() ==
-           DecompressError::InvalidBlockHeader);
+           DecompressStatus::InvalidBlockHeader);
 
     constexpr auto bad_block_type = huffman::byte_array(0b111);
     huffman::bit_span bad_block_type_span{bad_block_type};
     expect(detail::read_header(bad_block_type_span).error() ==
-           DecompressError::InvalidBlockHeader);
+           DecompressStatus::InvalidBlockHeader);
 
     constexpr auto fixed = huffman::byte_array(0b010);
     huffman::bit_span fixed_span{fixed};
@@ -84,9 +84,9 @@ auto main(int, char* argv[]) -> int
   };
 
   test("decompress invalid header") = [] -> void {
-    const auto result =
+    const auto status =
         decompress(std::span<const std::byte>{}, std::span<std::byte>{});
-    expect(result.error() == DecompressError::InvalidBlockHeader);
+    expect(status == DecompressStatus::InvalidBlockHeader);
   };
 
   test("no compression") = [] {
@@ -110,29 +110,18 @@ auto main(int, char* argv[]) -> int
         'd');
     std::span<const std::byte> src{compressed};
 
-    constexpr auto expected_0 = huffman::byte_array('r', 'o', 's', 'e');
-    constexpr auto expected_1 = huffman::byte_array('b', 'u', 'd');
-    const std::array<std::span<const std::byte>, 2> expecteds{
-        expected_0, expected_1};
+    constexpr auto expected =
+        huffman::byte_array('r', 'o', 's', 'e', 'b', 'u', 'd');
 
-    std::array<std::byte, 4> dst_array{};
-    const std::span<std::byte> dst{dst_array};
-    for (std::size_t i = 0; i < expecteds.size(); ++i) {
-      const auto result = decompress(src, dst);
-      expect(result.has_value())
-          << "got error code: " << static_cast<std::int32_t>(result.error());
-      if (i == 0) {
-        expect(not result->remaining_src.empty());
-        expect(result->min_next_dst_size == expecteds.at(1).size());
-      } else {
-        expect(result->remaining_src.empty());
-        expect(result->min_next_dst_size == 0);
-      }
-      const auto expected = expecteds.at(i);
-      expect(result->dst_written == expected.size());
-      expect(std::ranges::equal(dst.subspan(0, expected.size()), expected));
-      src = result->remaining_src;
-    }
+    std::array<std::byte, expected.size()> dst_array{};
+    std::span<std::byte> dst_too_small{dst_array.data(), dst_array.size() - 1};
+    const auto status_too_small = decompress(src, dst_too_small);
+    expect(status_too_small == DecompressStatus::DstTooSmall);
+
+    std::span<std::byte> dst{dst_array};
+    const auto status = decompress(src, dst);
+    expect(status == DecompressStatus::Success);
+    expect(std::ranges::equal(dst, expected));
   };
 
   test("fixed huffman") = [argv] {
