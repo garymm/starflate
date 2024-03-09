@@ -4,11 +4,11 @@ instead of the system installed libraries.
 """
 
 load(
-    "@bazel_toolchain//toolchain:deps.bzl",
+    "@toolchains_llvm//toolchain:deps.bzl",
     _llvm_toolchain_dependencies = "bazel_toolchain_dependencies",
 )
 load(
-    "@bazel_toolchain//toolchain:rules.bzl",
+    "@toolchains_llvm//toolchain:rules.bzl",
     _llvm_toolchain = "llvm_toolchain",
     _llvm_toolchain_files = "llvm",
 )
