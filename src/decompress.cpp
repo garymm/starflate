@@ -75,6 +75,39 @@ constexpr auto distance_infos = std::array<LengthInfo, 30>{
      {9, 1025},  {9, 1537},  {10, 2049},  {10, 3073},  {11, 4097},
      {11, 6145}, {12, 8193}, {12, 12289}, {13, 16385}, {13, 24577}}};
 
+enum class ParseLitOrLenStatus : std::uint8_t
+{
+  EndOfBlock,
+  Error,
+};
+
+auto parse_lit_or_len(
+    std::uint16_t lit_or_len, huffman::bit_span& src_bits) -> std::
+    expected<std::variant<std::byte, std::uint16_t>, ParseLitOrLenStatus>
+{
+  if (lit_or_len < detail::lit_or_len_end_of_block) {
+    return static_cast<std::byte>(lit_or_len);
+  }
+  if (lit_or_len == detail::lit_or_len_end_of_block) {
+    return std::unexpected{ParseLitOrLenStatus::EndOfBlock};
+  }
+  if (lit_or_len > detail::lit_or_len_max) {
+    return std::unexpected{ParseLitOrLenStatus::Error};
+  }
+  std::uint16_t len{};
+  if (lit_or_len == detail::lit_or_len_max) {
+    len = detail::lit_or_len_max_decoded;
+  } else {
+    const auto len_idx =
+        static_cast<size_t>(lit_or_len - detail::lit_or_len_end_of_block - 1);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+    const auto& len_info = detail::length_infos[len_idx];
+    const auto extra_len = src_bits.pop_n(len_info.extra_bits);
+    len = len_info.base + extra_len;
+  }
+  return len;
+}
+
 auto decompress_block_huffman(
     huffman::bit_span& src_bits,
     std::span<std::byte> dst,
@@ -83,36 +116,29 @@ auto decompress_block_huffman(
     const huffman::table<std::uint16_t, fixed_dist_table_size>& dist_table)
     -> DecompressStatus
 {
-  std::uint16_t lit_or_len{};
   while (true) {
     const auto lit_or_len_decoded = huffman::decode_one(len_table, src_bits);
     if (not lit_or_len_decoded.encoded_size) {
       return DecompressStatus::InvalidLitOrLen;
     }
-    lit_or_len = lit_or_len_decoded.symbol;
     src_bits.consume(lit_or_len_decoded.encoded_size);
-    if (lit_or_len < detail::lit_or_len_end_of_block) {
-      dst[static_cast<std::size_t>(dst_written++)] =
-          static_cast<std::byte>(lit_or_len);
-      continue;
-    }
-    if (lit_or_len == detail::lit_or_len_end_of_block) {
-      break;
-    }
-    if (lit_or_len > detail::lit_or_len_max) {
+    const auto maybe_lit_or_len =
+        parse_lit_or_len(lit_or_len_decoded.symbol, src_bits);
+    if (not maybe_lit_or_len) {
+      if (maybe_lit_or_len.error() == ParseLitOrLenStatus::EndOfBlock) {
+        return DecompressStatus::Success;
+      }
       return DecompressStatus::InvalidLitOrLen;
     }
-    std::uint16_t len{};
-    if (lit_or_len == detail::lit_or_len_max) {
-      len = detail::lit_or_len_max_decoded;
-    } else {
-      const auto len_idx =
-          static_cast<size_t>(lit_or_len - detail::lit_or_len_end_of_block - 1);
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-      const auto& len_info = detail::length_infos[len_idx];
-      const auto extra_len = src_bits.pop_n(len_info.extra_bits);
-      len = len_info.base + extra_len;
+    const auto lit_or_len = maybe_lit_or_len.value();
+    if (std::holds_alternative<std::byte>(lit_or_len)) {
+      if (dst.size() - static_cast<std::size_t>(dst_written) < 1) {
+        return DecompressStatus::DstTooSmall;
+      }
+      dst[static_cast<size_t>(dst_written++)] = std::get<std::byte>(lit_or_len);
+      continue;
     }
+    const auto len = std::get<std::uint16_t>(lit_or_len);
     const auto dist_decoded = huffman::decode_one(dist_table, src_bits);
     const auto dist_code = dist_decoded.symbol;
     if (not dist_decoded.encoded_size) {
@@ -133,7 +159,7 @@ auto decompress_block_huffman(
       return DecompressStatus::DstTooSmall;
     }
     starflate::detail::copy_from_before(
-        dst.begin() + dst_written, distance, len);
+        distance, dst.begin() + dst_written, len);
     dst_written += len;
   }
   return DecompressStatus::Success;
@@ -141,7 +167,7 @@ auto decompress_block_huffman(
 
 /// Copy n bytes from distance bytes before dst to dst.
 void copy_from_before(
-    std::span<std::byte>::iterator dst, std::uint16_t distance, std::uint16_t n)
+    std::uint16_t distance, std::span<std::byte>::iterator dst, std::uint16_t n)
 {
   std::ptrdiff_t n_signed{n};
   const auto src = dst - distance;

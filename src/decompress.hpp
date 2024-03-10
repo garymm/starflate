@@ -62,8 +62,8 @@ constexpr auto lit_or_len_max_decoded = std::uint16_t{258};
 ///
 /// @pre dst - distance is valid.
 void copy_from_before(
-    std::span<std::byte>::iterator dst,
     std::uint16_t distance,
+    std::span<std::byte>::iterator dst,
     std::uint16_t n);
 }  // namespace detail
 

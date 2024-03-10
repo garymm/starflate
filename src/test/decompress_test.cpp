@@ -167,7 +167,7 @@ auto main(int, char* argv[]) -> int
   test("copy_from_before") = [] {
     auto src_and_dst = huffman::byte_array(1, 2, 0, 0, 0, 0);
     const auto dst_span = std::span<std::byte>{src_and_dst}.subspan(2);
-    detail::copy_from_before(dst_span.begin(), 2, 3);
+    detail::copy_from_before(2, dst_span.begin(), 3);
     expect(eq(src_and_dst, huffman::byte_array(1, 2, 1, 2, 1, 0)));
   };
 };
