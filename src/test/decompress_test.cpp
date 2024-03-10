@@ -164,11 +164,10 @@ auto main(int, char* argv[]) -> int
     expect(header->type == detail::BlockType::DynamicHuffman);
   };
 
-  test("copy_n") = [] {
+  test("copy_from_before") = [] {
     auto src_and_dst = huffman::byte_array(1, 2, 0, 0, 0, 0);
-    const auto src_span = std::span<const std::byte>{src_and_dst};
     const auto dst_span = std::span<std::byte>{src_and_dst}.subspan(2);
-    detail::copy_n(src_span.begin(), 3, dst_span.begin());
+    detail::copy_from_before(dst_span.begin(), 2, 3);
     expect(eq(src_and_dst, huffman::byte_array(1, 2, 1, 2, 1, 0)));
   };
 };

@@ -132,19 +132,19 @@ auto decompress_block_huffman(
     if (dst.size() - static_cast<std::size_t>(dst_written) < len) {
       return DecompressStatus::DstTooSmall;
     }
-    starflate::detail::copy_n(
-        dst.begin() + (dst_written - distance), len, dst.begin() + dst_written);
+    starflate::detail::copy_from_before(
+        dst.begin() + dst_written, distance, len);
     dst_written += len;
   }
   return DecompressStatus::Success;
 }
 
-void copy_n(
-    std::span<const std::byte>::iterator src,
-    std::uint16_t n,
-    std::span<std::byte>::iterator dst)
+/// Copy n bytes from distance bytes before dst to dst.
+void copy_from_before(
+    std::span<std::byte>::iterator dst, std::uint16_t distance, std::uint16_t n)
 {
   std::ptrdiff_t n_signed{n};
+  const auto src = dst - distance;
   while (n_signed > 0) {
     const auto n_to_copy = std::min(n_signed, dst - src);
     dst = std::copy_n(src, n_to_copy, dst);
