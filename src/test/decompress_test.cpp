@@ -116,10 +116,13 @@ auto main(int, char* argv[]) -> int
     std::array<std::byte, expected.size()> dst_array{};
     const std::span<std::byte> dst_too_small{
         dst_array.data(), dst_array.size() - 1};
-    const auto status_too_small = decompress(src, dst_too_small);
-    expect(status_too_small == DecompressStatus::DstTooSmall);
+    const auto status_dst_too_small = decompress(src, dst_too_small);
+    expect(status_dst_too_small == DecompressStatus::DstTooSmall);
 
     const std::span<std::byte> dst{dst_array};
+    const auto status_src_too_small = decompress(src.subspan(0, 5), dst);
+    expect(status_src_too_small == DecompressStatus::SrcTooSmall);
+
     const auto status = decompress(src, dst);
     expect(status == DecompressStatus::Success);
     expect(std::ranges::equal(dst, expected));
