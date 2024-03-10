@@ -75,6 +75,28 @@ constexpr auto distance_infos = std::array<LengthInfo, 30>{
      {9, 1025},  {9, 1537},  {10, 2049},  {10, 3073},  {11, 4097},
      {11, 6145}, {12, 8193}, {12, 12289}, {13, 16385}, {13, 24577}}};
 
+/// Removes n bits from the beginning of bits and returns them.
+///
+/// @pre bits contains at least n bits.
+/// @pre n <= 16
+///
+/// @returns the n bits removed from the beginning of this.
+/// The bits are in the lower (rightmost) part of the return value.
+///
+auto pop_extra_bits(huffman::bit_span& bits, std::uint8_t n) -> std::uint16_t
+{
+  assert(n <= 16);
+  auto iter = bits.begin();
+  std::uint16_t res{};
+  for (std::uint8_t i{}; i < n; i++) {
+    res |= static_cast<std::uint16_t>(
+        static_cast<std::uint16_t>(static_cast<bool>(*iter)) << i);
+    iter += 1;
+  }
+  bits.consume(n);  // invalidates iter, so must come after the loop
+  return res;
+}
+
 enum class ParseLitOrLenStatus : std::uint8_t
 {
   EndOfBlock,
@@ -102,7 +124,7 @@ auto parse_lit_or_len(
         static_cast<size_t>(lit_or_len - detail::lit_or_len_end_of_block - 1);
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     const auto& len_info = detail::length_infos[len_idx];
-    const auto extra_len = src_bits.pop_n(len_info.extra_bits);
+    const auto extra_len = pop_extra_bits(src_bits, len_info.extra_bits);
     len = len_info.base + extra_len;
   }
   return len;
@@ -138,6 +160,7 @@ auto decompress_block_huffman(
       dst[static_cast<size_t>(dst_written++)] = std::get<std::byte>(lit_or_len);
       continue;
     }
+    // It's not a literal, so handle length and distance
     const auto len = std::get<std::uint16_t>(lit_or_len);
     const auto dist_decoded = huffman::decode_one(dist_table, src_bits);
     const auto dist_code = dist_decoded.symbol;
@@ -151,7 +174,7 @@ auto decompress_block_huffman(
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     const auto& dist_info = detail::distance_infos[dist_code];
     const std::uint16_t distance =
-        dist_info.base + src_bits.pop_n(dist_info.extra_bits);
+        dist_info.base + pop_extra_bits(src_bits, dist_info.extra_bits);
     if (distance > dst_written) {
       return DecompressStatus::InvalidDistance;
     }
