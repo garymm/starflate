@@ -6,7 +6,6 @@
 #include <array>
 #include <climits>
 #include <cstdint>
-#include <numeric>
 #include <ranges>
 #include <vector>
 
@@ -115,6 +114,9 @@ auto main() -> int
       expect(std::cmp_equal(CHAR_BIT * data.size() - n, bits.size()));
       if (std::cmp_less(n, initial_bits.size())) {
         expect(nth_bit(n) == bits[0]);
+      }
+      if (n == 0) {
+        expect(initial_bits.byte_data() == bits.byte_data());
       }
     } else {
       expect(aborts([&] { bits.consume(n); }));
