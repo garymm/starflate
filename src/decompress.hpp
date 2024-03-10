@@ -41,21 +41,9 @@ struct BlockHeader
 auto read_header(huffman::bit_span& compressed_bits)
     -> std::expected<BlockHeader, DecompressStatus>;
 
-struct LengthInfo
-{
-  std::uint8_t extra_bits;
-  std::uint16_t base;
-};
-
-extern const huffman::table<std::uint16_t, 288> fixed_table;
-extern const std::array<LengthInfo, 28> length_infos;
-constexpr auto lit_or_len_end_of_block = std::uint16_t{256};
-constexpr auto lit_or_len_max = std::uint16_t{285};
-constexpr auto lit_or_len_max_decoded = std::uint16_t{258};
-
 /// Copies n bytes from (dst - distance) to dst, handling overlap by repeating.
 ///
-/// From the standard section 3.2.3:
+/// From RFC 3.2.3:
 /// the referenced string may overlap the current position; for example, if the
 /// last 2 bytes decoded have values X and Y, a string reference with
 /// <length = 5, distance = 2> adds X,Y,X,Y,X to the output stream.

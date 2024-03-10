@@ -60,6 +60,16 @@ constexpr auto fixed_dist_table = huffman::table<
     std::uint16_t,
     fixed_dist_table_size>{huffman::symbol_bitsize, {{{0, 31}, 5}}};
 
+struct LengthInfo
+{
+  std::uint8_t extra_bits;
+  std::uint16_t base;
+};
+
+constexpr auto lit_or_len_end_of_block = std::uint16_t{256};
+constexpr auto lit_or_len_max = std::uint16_t{285};
+constexpr auto lit_or_len_max_decoded = std::uint16_t{258};
+
 // RFC 3.2.5: Compressed blocks (length and distance codes)
 constexpr auto length_infos = std::array<LengthInfo, 28>{
     {{0, 3},  {0, 4},  {0, 5},   {0, 6},   {0, 7},   {0, 8},   {0, 9},
