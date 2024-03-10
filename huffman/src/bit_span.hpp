@@ -17,12 +17,11 @@ namespace starflate::huffman {
 /// A non-owning span of bits. Allows for iteration over the individual bits.
 class bit_span : public std::ranges::view_interface<bit_span>
 {
-
-public:
-  // TODO: make private
   const std::byte* data_{nullptr};
   std::size_t bit_size_{};
   std::uint8_t bit_offset_{};  // always less than CHAR_BIT
+
+public:
   /// An iterator over the bits in a bit_span.
   class iterator : public detail::iterator_interface<iterator>
   {
