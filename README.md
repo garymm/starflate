@@ -42,14 +42,20 @@ Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/setting
 
 ### TODO
 
-* Get SYCL building with bazel. Already have OpenSYCL building for CPU only [here](https://github.com/garymm/xpu).
-  Would be nicer to use [intel's LLVM](https://github.com/intel/llvm) which supports lots of GPUs.
-* (maybe?) Implement LZ77 with C++ std lib.
+#### Basic
+
 * Implement Deflate decompression with C++ std lib.
-* Port Deflate to SYCL.
 * Benchmark it on CPU.
 * Build system work to get it to run on GPU.
+* Port Deflate to GPU.
 * Benchmark it on GPU.
+
+#### Nice to have
+
+* Support chunked output. Started in
+  [2e6a83d622e](https://github.com/garymm/starflate/commit/2e6a83d622a0bbe6b65c757199b64511156b516c)
+  , but removed because it was adding too much complexity and I wanted to focus on getting the
+  basics working.
 
 ## References
 

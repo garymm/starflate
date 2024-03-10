@@ -10,11 +10,13 @@
 namespace starflate {
 
 // error code enum
-enum class DecompressError : std::uint8_t
+enum class DecompressStatus : std::uint8_t
 {
-  Error,
+  Success,
+  Error,  // TODO: remove
   InvalidBlockHeader,
   NoCompressionLenMismatch,
+  DstTooSmall,
 };
 
 namespace detail {
@@ -33,31 +35,17 @@ struct BlockHeader
 };
 
 auto read_header(huffman::bit_span& compressed_bits)
-    -> std::expected<BlockHeader, DecompressError>;
+    -> std::expected<BlockHeader, DecompressStatus>;
 }  // namespace detail
-
-/// The result of decompress.
-///
-struct DecompressResult
-{
-  std::span<const std::byte> remaining_src;  ///< Remaining source data after
-                                             ///< decompression.
-  std::size_t dst_written;        ///< Number of bytes written to dst.
-  std::size_t min_next_dst_size;  ///< Minimum number of bytes required in dst
-                                  ///< for the next decompression. This is only
-                                  ///< enough space for decompression of a
-                                  ///< single block
-};
 
 /// Decompresses the given source data into the destination buffer.
 ///
 /// @param src The source data to decompress.
 /// @param dst The destination buffer to store the decompressed data.
-/// @return An expected value containing the decompression result if successful,
-/// or an error code if failed.
+/// @return A status code indicating the result of the decompression.
 ///
 auto decompress(std::span<const std::byte> src, std::span<std::byte> dst)
-    -> std::expected<DecompressResult, DecompressError>;
+    -> DecompressStatus;
 
 template <std::ranges::contiguous_range R>
   requires std::same_as<std::ranges::range_value_t<R>, std::byte>
