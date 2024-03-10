@@ -50,6 +50,7 @@ struct decode_result
 /// @param bits The bit stream to decode.
 ///
 /// @returns The decoded symbol and how many bits its code was.
+///          If no symbol was found, result.encoded_size == 0.
 /// @tparam Symbol The type of the symbols in the code table.
 /// @tparam Extent The extent of the code table.
 template <symbol Symbol, std::size_t Extent>
@@ -57,15 +58,13 @@ constexpr auto
 decode_one(const table<Symbol, Extent>& code_table, bit_span bits)
     -> decode_result<Symbol>
 {
-  std::uint8_t bits_read{};
   code current_code{};
   auto code_table_pos = code_table.begin();
   for (auto bit : bits) {
     current_code << bit;
-    bits_read++;
     auto found = code_table.find(current_code, code_table_pos);
     if (found) {
-      return {(*found)->symbol, bits_read};
+      return {(*found)->symbol, (*found)->bitsize()};
     }
     if (found.error() == code_table.end()) {
       break;
