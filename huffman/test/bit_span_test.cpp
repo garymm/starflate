@@ -6,7 +6,6 @@
 #include <array>
 #include <climits>
 #include <cstdint>
-#include <numeric>
 #include <ranges>
 #include <vector>
 
@@ -175,15 +174,6 @@ auto main() -> int
     expect(eq(got_8, expected_8));
 
     expect(aborts([&] { span.pop_8(); }));
-
-    span = huffman::bit_span{data};
-    const std::uint16_t got_5{span.pop_n(5)};
-    constexpr std::uint16_t expected_5{0b01010};
-    expect(eq(got_5, expected_5));
-
-    const std::uint16_t got_3{span.pop_n(3)};
-    constexpr std::uint16_t expected_3{0b101};
-    expect(eq(got_3, expected_3));
     // NOLINTEND(readability-magic-numbers)
   };
 }

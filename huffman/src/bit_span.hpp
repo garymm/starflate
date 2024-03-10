@@ -143,25 +143,6 @@ public:
 
   constexpr auto pop_16() -> std::uint16_t { return pop<std::uint16_t>(); }
 
-  /// Removes n bits from the beginning of this and returns them.
-  ///
-  /// @pre this contains at least n bits.
-  ///
-  constexpr auto pop_n(std::uint8_t n) -> std::uint16_t
-  {
-    assert(n <= 16);
-    assert(n <= bit_size_);
-    auto iter = begin();
-    std::uint16_t res{};
-    for (std::uint8_t i{}; i < n; i++) {
-      res |= static_cast<std::uint16_t>(
-          static_cast<std::uint16_t>(static_cast<bool>(*iter)) << i);
-      iter += 1;
-    }
-    consume(n);  // invalidates iter, so must come after the loop
-    return res;
-  }
-
   /// Consumes the given number of bits. Advances the start of the view.
   ///
   /// @pre n <= std::ranges::size(*this)
