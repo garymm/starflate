@@ -34,13 +34,15 @@ constexpr auto code_table = [] {
 
 namespace test {
 
+namespace {
+
 constexpr auto verify(bool cond)
 {
   if (not cond) {
     throw std::runtime_error{""};
   }
 }
-
+}  // namespace
 }  // namespace test
 
 auto main() -> int
@@ -89,9 +91,8 @@ auto main() -> int
     constexpr auto decoded = [] {
       constexpr auto encoded = std::array{
           //
-          std::byte{0b0111'1111}
-          //           ^^^ ^^^^
-          //           padding
+          std::byte{0b0111'1111}  //           ^^^ ^^^^
+                                  //           padding
       };
 
       auto buf = std::array<char, expected.size()>{};
@@ -205,16 +206,14 @@ auto main() -> int
     constexpr auto decoded = [] {
       constexpr auto encoded = std::array{
           std::byte{0b1111'1011},  //
-          std::byte{0b0001'0111}
-          //          ^^
-          //          padding
+          std::byte{0b0001'0111}   // starts with 2 bits of padding
       };
 
       auto buf = std::array<char, expected.size()>{};
 
       auto it = huffman::decode(
           code_table,
-          huffman::bit_span{encoded.data(), encoded.size() * CHAR_BIT - 2},
+          huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 2},
           buf.begin());
 
       ::test::verify(it == buf.end());
@@ -257,16 +256,15 @@ auto main() -> int
           std::byte{0b0101'1111},
           std::byte{0b0011'0111},
           std::byte{0b0110'1001},
-          std::byte{0b0011'1101}
-          //          ^
-          //          padding
+          std::byte{0b0011'1101}  //          ^
+                                  //          padding
       };
 
       auto buf = std::array<char, expected.size()>{};
 
       auto it = huffman::decode(
           code_table,
-          huffman::bit_span{encoded.data(), encoded.size() * CHAR_BIT - 1},
+          huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 1},
           buf.begin());
 
       ::test::verify(it == buf.end());

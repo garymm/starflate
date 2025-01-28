@@ -2,5 +2,6 @@
 
 auto main() -> int
 {
-  [[maybe_unused]] const auto x = std::expected<int, double>{};
+  [[maybe_unused]]
+  const auto x = std::expected<int, double>{};
 }

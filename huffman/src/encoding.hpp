@@ -45,8 +45,7 @@ struct encoding : code
   }
 
   [[nodiscard]]
-  friend auto
-  operator<=>(const encoding&, const encoding&) = default;
+  friend auto operator<=>(const encoding&, const encoding&) = default;
 };
 
 }  // namespace starflate::huffman

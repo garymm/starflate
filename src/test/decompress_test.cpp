@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+namespace {
 template <class... Ts>
 constexpr auto byte_vector(Ts... values)
 {
@@ -45,6 +46,7 @@ auto read_runfile(const char* argv0, const std::string& path)
       reinterpret_cast<std::byte*>(chars.data() + chars.size())};
   // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 }
+}  // namespace
 
 auto main(int, char* argv[]) -> int
 {

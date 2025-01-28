@@ -6,7 +6,7 @@ Deflate on various hardware platforms
 
 Should work on Linux and MacOS.
 
-* Install `bazel` or `bazelisk`
+* Install [bazelisk](https://github.com/bazelbuild/bazelisk/blob/master/README.md).
 
 * Verify that you can build and test:
 ```sh
@@ -15,7 +15,10 @@ bazel test //...
 
 ### VS Code
 
-Install the recommended extensions. See .vscode/extensions.json.
+Install the recommended extensions. Type `@recommended` in the extensions search, or see .vscode/extensions.json.
+
+For the Bazel extension to auto-format .bazel files, you need to install [buildifier](https://github.com/bazelbuild/buildtools/releases).
+On MacOS, just `brew install buildifier`.
 
 ### Auto-completion
 

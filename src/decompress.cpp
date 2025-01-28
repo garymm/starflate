@@ -6,6 +6,7 @@
 
 namespace starflate {
 namespace detail {
+namespace {
 
 auto valid(BlockType type) -> bool
 {
@@ -13,6 +14,7 @@ auto valid(BlockType type) -> bool
   return type == NoCompression || type == FixedHuffman ||
          type == DynamicHuffman;
 }
+}  // namespace
 
 auto read_header(huffman::bit_span& compressed_bits)
     -> std::expected<BlockHeader, DecompressStatus>
@@ -28,7 +30,7 @@ auto read_header(huffman::bit_span& compressed_bits)
   }
   const bool final{static_cast<bool>(compressed_bits[0])};
   compressed_bits.consume(3);
-  return BlockHeader{final, type};
+  return BlockHeader{.final = final, .type = type};
 }
 
 }  // namespace detail
