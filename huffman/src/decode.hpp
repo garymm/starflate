@@ -5,7 +5,6 @@
 #include "huffman/src/utility.hpp"
 
 #include <iterator>
-#include <span>
 
 namespace starflate::huffman {
 /// Decodes a bit stream using a code table.
@@ -27,21 +26,49 @@ decode(const table<Symbol, Extent>& code_table, bit_span bits, O output) -> O
 {
   while (!bits.empty()) {
     auto result = decode_one(code_table, bits);
-    if (result.encoded_size == 0) {
+    if (not result.has_value()) {
       break;
     }
-    *output = result.symbol;
+    *output = result.symbol();
     output++;
-    bits.consume(result.encoded_size);
+    bits.consume(result.encoded_size());
   }
   return output;
 }
 
 template <symbol Symbol>
-struct decode_result
+class decode_result
 {
-  Symbol symbol;
-  std::uint8_t encoded_size;
+public:
+  static constexpr std::uint8_t kInvalidEncodedSize = 0;
+
+  constexpr decode_result(Symbol symbol, std::uint8_t encoded_size)
+      : symbol_{symbol}, encoded_size_{encoded_size}
+  {}
+
+  [[nodiscard]]
+  constexpr auto has_value() const -> bool
+  {
+    return encoded_size_ != kInvalidEncodedSize;
+  }
+
+  [[nodiscard]]
+  constexpr auto symbol() const -> Symbol
+  {
+    assert(has_value());
+    return symbol_;
+  }
+
+  [[nodiscard]]
+  constexpr auto encoded_size() const -> std::uint8_t
+  {
+    assert(has_value());
+    return encoded_size_;
+  }
+
+private:
+  Symbol symbol_;
+  std::uint8_t encoded_size_;
 };
 
 /// Decodes a single symbol from \p bits using \p code_table.
@@ -71,7 +98,7 @@ decode_one(const table<Symbol, Extent>& code_table, bit_span bits)
     }
     code_table_pos = found.error();
   }
-  return {Symbol{}, 0};
+  return {Symbol{}, decode_result<Symbol>::kInvalidEncodedSize};
 }
 
 }  // namespace starflate::huffman

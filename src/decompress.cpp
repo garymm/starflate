@@ -105,38 +105,86 @@ auto pop_extra_bits(huffman::bit_span& bits, std::uint8_t n) -> std::uint16_t
   return res;
 }
 
-enum class ParseLitOrLenStatus : std::uint8_t
+enum class DecodeLitOrLenStatus : std::uint8_t
 {
   EndOfBlock,
   Error,
 };
 
-auto parse_lit_or_len(
+auto decode_lit_or_len(
     std::uint16_t lit_or_len, huffman::bit_span& src_bits) -> std::
-    expected<std::variant<std::byte, std::uint16_t>, ParseLitOrLenStatus>
+    expected<std::variant<std::byte, std::uint16_t>, DecodeLitOrLenStatus>
 {
   if (lit_or_len < detail::lit_or_len_end_of_block) {
     return static_cast<std::byte>(lit_or_len);
   }
   if (lit_or_len == detail::lit_or_len_end_of_block) {
-    return std::unexpected{ParseLitOrLenStatus::EndOfBlock};
+    return std::unexpected{DecodeLitOrLenStatus::EndOfBlock};
   }
   if (lit_or_len > detail::lit_or_len_max) {
-    return std::unexpected{ParseLitOrLenStatus::Error};
+    return std::unexpected{DecodeLitOrLenStatus::Error};
   }
-  std::uint16_t len{};
   if (lit_or_len == detail::lit_or_len_max) {
-    len = detail::lit_or_len_max_decoded;
-  } else {
-    const auto len_idx =
-        static_cast<size_t>(lit_or_len - detail::lit_or_len_end_of_block - 1);
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-    const auto& len_info = detail::length_infos[len_idx];
-    const auto extra_len = pop_extra_bits(src_bits, len_info.extra_bits);
-    len = len_info.base + extra_len;
+    return detail::lit_or_len_max_decoded;
   }
-  return len;
+  const auto len_code =
+      static_cast<size_t>(lit_or_len - detail::lit_or_len_end_of_block - 1);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  const auto& len_info = detail::length_infos[len_code];
+  const auto extra_len = pop_extra_bits(src_bits, len_info.extra_bits);
+  return static_cast<std::uint16_t>(len_info.base + extra_len);
 }
+
+auto decompress_literal(
+    std::byte literal, std::span<std::byte> dst, std::ptrdiff_t& dst_written)
+    -> DecompressStatus
+{
+  if (dst.size() - static_cast<std::size_t>(dst_written) < 1) {
+    return DecompressStatus::DstTooSmall;
+  }
+  dst[static_cast<size_t>(dst_written++)] = literal;
+  return DecompressStatus::Success;
+}
+
+auto decompress_length_distance(
+    std::uint16_t len,
+    huffman::bit_span& src_bits,
+    std::span<std::byte> dst,
+    std::ptrdiff_t& dst_written,
+    const huffman::table<std::uint16_t, fixed_dist_table_size>& dist_table)
+    -> DecompressStatus
+{
+  const auto dist_code_huff_decoded = huffman::decode_one(dist_table, src_bits);
+  const auto dist_code = dist_code_huff_decoded.symbol();
+  if (not dist_code_huff_decoded.has_value()) {
+    return DecompressStatus::InvalidDistance;
+  }
+  src_bits.consume(dist_code_huff_decoded.encoded_size());
+  if (dist_code >= detail::distance_infos.size()) {
+    return DecompressStatus::InvalidLitOrLen;
+  }
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  const auto& dist_info = detail::distance_infos[dist_code];
+  const std::uint16_t distance =
+      dist_info.base + pop_extra_bits(src_bits, dist_info.extra_bits);
+  if (distance > dst_written) {
+    return DecompressStatus::InvalidDistance;
+  }
+  if (dst.size() - static_cast<std::size_t>(dst_written) < len) {
+    return DecompressStatus::DstTooSmall;
+  }
+  starflate::detail::copy_from_before(distance, dst.begin() + dst_written, len);
+  dst_written += len;
+  return DecompressStatus::Success;
+}
+
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 auto decompress_block_huffman(
     huffman::bit_span& src_bits,
@@ -147,51 +195,39 @@ auto decompress_block_huffman(
     -> DecompressStatus
 {
   while (true) {
-    const auto lit_or_len_decoded = huffman::decode_one(len_table, src_bits);
-    if (not lit_or_len_decoded.encoded_size) {
+    // There are two levels of encoding:
+    // 1. Huffman coding. This is the outer level, which we decode first
+    //    using huffman::decode_one.
+    // 2. The literal/length code. This is the inner level, which we decode
+    //    second using the length_infos and distance_infos arrays.
+    const auto lit_or_len_code_huff_decoded =
+        huffman::decode_one(len_table, src_bits);
+    // If we decide to supoort chunked input, this will no longer be an error.
+    if (not lit_or_len_code_huff_decoded.has_value()) {
       return DecompressStatus::InvalidLitOrLen;
     }
-    src_bits.consume(lit_or_len_decoded.encoded_size);
+    src_bits.consume(lit_or_len_code_huff_decoded.encoded_size());
     const auto maybe_lit_or_len =
-        parse_lit_or_len(lit_or_len_decoded.symbol, src_bits);
+        decode_lit_or_len(lit_or_len_code_huff_decoded.symbol(), src_bits);
     if (not maybe_lit_or_len) {
-      if (maybe_lit_or_len.error() == ParseLitOrLenStatus::EndOfBlock) {
+      if (maybe_lit_or_len.error() == DecodeLitOrLenStatus::EndOfBlock) {
         return DecompressStatus::Success;
       }
       return DecompressStatus::InvalidLitOrLen;
     }
-    const auto lit_or_len = maybe_lit_or_len.value();
-    if (std::holds_alternative<std::byte>(lit_or_len)) {
-      if (dst.size() - static_cast<std::size_t>(dst_written) < 1) {
-        return DecompressStatus::DstTooSmall;
-      }
-      dst[static_cast<size_t>(dst_written++)] = std::get<std::byte>(lit_or_len);
-      continue;
+    const auto status = std::visit(
+        overloaded{
+            [&](std::byte literal) -> DecompressStatus {
+              return decompress_literal(literal, dst, dst_written);
+            },
+            [&](std::uint16_t len) -> DecompressStatus {
+              return decompress_length_distance(
+                  len, src_bits, dst, dst_written, dist_table);
+            }},
+        maybe_lit_or_len.value());
+    if (status != DecompressStatus::Success) {
+      return status;
     }
-    // It's not a literal, so handle length and distance
-    const auto len = std::get<std::uint16_t>(lit_or_len);
-    const auto dist_decoded = huffman::decode_one(dist_table, src_bits);
-    const auto dist_code = dist_decoded.symbol;
-    if (not dist_decoded.encoded_size) {
-      return DecompressStatus::InvalidDistance;
-    }
-    src_bits.consume(dist_decoded.encoded_size);
-    if (dist_code >= detail::distance_infos.size()) {
-      return DecompressStatus::InvalidLitOrLen;
-    }
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-    const auto& dist_info = detail::distance_infos[dist_code];
-    const std::uint16_t distance =
-        dist_info.base + pop_extra_bits(src_bits, dist_info.extra_bits);
-    if (distance > dst_written) {
-      return DecompressStatus::InvalidDistance;
-    }
-    if (dst.size() - static_cast<std::size_t>(dst_written) < len) {
-      return DecompressStatus::DstTooSmall;
-    }
-    starflate::detail::copy_from_before(
-        distance, dst.begin() + dst_written, len);
-    dst_written += len;
   }
   return DecompressStatus::Success;
 }
