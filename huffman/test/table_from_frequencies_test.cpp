@@ -43,7 +43,7 @@ public:
 
   friend constexpr auto operator==(Country lhs, Country rhs)
   {
-    return lhs <=> rhs == 0;
+    return (lhs <=> rhs) == 0;
   }
 };
 

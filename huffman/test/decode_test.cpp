@@ -34,13 +34,15 @@ constexpr auto code_table = [] {
 
 namespace test {
 
+namespace {
+
 constexpr auto verify(bool cond)
 {
   if (not cond) {
     throw std::runtime_error{""};
   }
 }
-
+}  // namespace
 }  // namespace test
 
 auto main() -> int
@@ -211,7 +213,7 @@ auto main() -> int
 
       auto it = huffman::decode(
           code_table,
-          huffman::bit_span{encoded.data(), encoded.size() * CHAR_BIT - 2},
+          huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 2},
           buf.begin());
 
       ::test::verify(it == buf.end());
@@ -262,7 +264,7 @@ auto main() -> int
 
       auto it = huffman::decode(
           code_table,
-          huffman::bit_span{encoded.data(), encoded.size() * CHAR_BIT - 1},
+          huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 1},
           buf.begin());
 
       ::test::verify(it == buf.end());
