@@ -1,9 +1,6 @@
 #include "decompress.hpp"
 
 #include <cstdint>
-#include <iostream>
-#include <iterator>
-#include <utility>
 
 namespace starflate {
 namespace detail {
@@ -14,24 +11,6 @@ auto valid(BlockType type) -> bool
   using enum BlockType;
   return type == NoCompression || type == FixedHuffman ||
          type == DynamicHuffman;
-}
-}  // namespace
-
-auto read_header(huffman::bit_span& compressed_bits)
-    -> std::expected<BlockHeader, DecompressStatus>
-{
-  if (std::ranges::size(compressed_bits) < 3) {
-    return std::unexpected{DecompressStatus::InvalidBlockHeader};
-  }
-  auto type = static_cast<BlockType>(
-      std::uint8_t{static_cast<bool>(compressed_bits[1])} |
-      (std::uint8_t{static_cast<bool>(compressed_bits[2])} << 1));
-  if (not valid(type)) {
-    return std::unexpected{DecompressStatus::InvalidBlockHeader};
-  }
-  const bool final{static_cast<bool>(compressed_bits[0])};
-  compressed_bits.consume(3);
-  return BlockHeader{.final = final, .type = type};
 }
 
 // RFC 3.2.6: static literal/length table
@@ -72,18 +51,37 @@ constexpr auto lit_or_len_max_decoded = std::uint16_t{258};
 
 // RFC 3.2.5: Compressed blocks (length and distance codes)
 constexpr auto length_infos = std::array<LengthInfo, 28>{
-    {{0, 3},  {0, 4},  {0, 5},   {0, 6},   {0, 7},   {0, 8},   {0, 9},
-     {0, 10}, {1, 11}, {1, 13},  {1, 15},  {1, 17},  {2, 19},  {2, 23},
-     {2, 27}, {2, 31}, {3, 35},  {3, 43},  {3, 51},  {3, 59},  {4, 67},
-     {4, 83}, {4, 99}, {4, 115}, {5, 131}, {5, 163}, {5, 195}, {5, 227}}};
+    {{.extra_bits = 0, .base = 3},   {.extra_bits = 0, .base = 4},
+     {.extra_bits = 0, .base = 5},   {.extra_bits = 0, .base = 6},
+     {.extra_bits = 0, .base = 7},   {.extra_bits = 0, .base = 8},
+     {.extra_bits = 0, .base = 9},   {.extra_bits = 0, .base = 10},
+     {.extra_bits = 1, .base = 11},  {.extra_bits = 1, .base = 13},
+     {.extra_bits = 1, .base = 15},  {.extra_bits = 1, .base = 17},
+     {.extra_bits = 2, .base = 19},  {.extra_bits = 2, .base = 23},
+     {.extra_bits = 2, .base = 27},  {.extra_bits = 2, .base = 31},
+     {.extra_bits = 3, .base = 35},  {.extra_bits = 3, .base = 43},
+     {.extra_bits = 3, .base = 51},  {.extra_bits = 3, .base = 59},
+     {.extra_bits = 4, .base = 67},  {.extra_bits = 4, .base = 83},
+     {.extra_bits = 4, .base = 99},  {.extra_bits = 4, .base = 115},
+     {.extra_bits = 5, .base = 131}, {.extra_bits = 5, .base = 163},
+     {.extra_bits = 5, .base = 195}, {.extra_bits = 5, .base = 227}}};
 
 constexpr auto distance_infos = std::array<LengthInfo, 30>{
-    {{0, 1},     {0, 2},     {0, 3},      {0, 4},      {1, 5},
-     {1, 7},     {2, 9},     {2, 13},     {3, 17},     {3, 25},
-     {4, 33},    {4, 49},    {5, 65},     {5, 97},     {6, 129},
-     {6, 193},   {7, 257},   {7, 385},    {8, 513},    {8, 769},
-     {9, 1025},  {9, 1537},  {10, 2049},  {10, 3073},  {11, 4097},
-     {11, 6145}, {12, 8193}, {12, 12289}, {13, 16385}, {13, 24577}}};
+    {{.extra_bits = 0, .base = 1},      {.extra_bits = 0, .base = 2},
+     {.extra_bits = 0, .base = 3},      {.extra_bits = 0, .base = 4},
+     {.extra_bits = 1, .base = 5},      {.extra_bits = 1, .base = 7},
+     {.extra_bits = 2, .base = 9},      {.extra_bits = 2, .base = 13},
+     {.extra_bits = 3, .base = 17},     {.extra_bits = 3, .base = 25},
+     {.extra_bits = 4, .base = 33},     {.extra_bits = 4, .base = 49},
+     {.extra_bits = 5, .base = 65},     {.extra_bits = 5, .base = 97},
+     {.extra_bits = 6, .base = 129},    {.extra_bits = 6, .base = 193},
+     {.extra_bits = 7, .base = 257},    {.extra_bits = 7, .base = 385},
+     {.extra_bits = 8, .base = 513},    {.extra_bits = 8, .base = 769},
+     {.extra_bits = 9, .base = 1025},   {.extra_bits = 9, .base = 1537},
+     {.extra_bits = 10, .base = 2049},  {.extra_bits = 10, .base = 3073},
+     {.extra_bits = 11, .base = 4097},  {.extra_bits = 11, .base = 6145},
+     {.extra_bits = 12, .base = 8193},  {.extra_bits = 12, .base = 12289},
+     {.extra_bits = 13, .base = 16385}, {.extra_bits = 13, .base = 24577}}};
 
 /// Removes n bits from the beginning of bits and returns them.
 ///
@@ -196,6 +194,24 @@ auto decompress_block_huffman(
     dst_written += len;
   }
   return DecompressStatus::Success;
+}
+}  // namespace
+
+auto read_header(huffman::bit_span& compressed_bits)
+    -> std::expected<BlockHeader, DecompressStatus>
+{
+  if (std::ranges::size(compressed_bits) < 3) {
+    return std::unexpected{DecompressStatus::InvalidBlockHeader};
+  }
+  auto type = static_cast<BlockType>(
+      std::uint8_t{static_cast<bool>(compressed_bits[1])} |
+      (std::uint8_t{static_cast<bool>(compressed_bits[2])} << 1));
+  if (not valid(type)) {
+    return std::unexpected{DecompressStatus::InvalidBlockHeader};
+  }
+  const bool final{static_cast<bool>(compressed_bits[0])};
+  compressed_bits.consume(3);
+  return BlockHeader{.final = final, .type = type};
 }
 
 /// Copy n bytes from distance bytes before dst to dst.

@@ -2,7 +2,6 @@
 
 #include "huffman/huffman.hpp"
 
-#include <array>
 #include <cstddef>
 #include <expected>
 #include <ranges>
