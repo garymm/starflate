@@ -12,10 +12,12 @@ void increment() {
 }
 
 int main() {
-  std::thread t1(increment);
-  std::thread t2(increment);
-  t1.join();
-  t2.join();
+  for (int i = 0; i < 100; ++i) {
+    std::thread t1(increment);
+    std::thread t2(increment);
+    t1.join();
+    t2.join();
+  }
 
   return value;
 }
