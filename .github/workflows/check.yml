@@ -89,14 +89,6 @@ jobs:
             "~/.cache/bazelisk"
           key: bazel-other
 
-      - name: install libtinfo5
-        # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
-        # runners already have `libtinfo.so.6` installed. We just create a
-        # symlink since it's faster than installing libtinfo5.
-        # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
-        run: |
-          sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
-
       - run: |
           bazel \
             --bazelrc=.github/workflows/ci.bazelrc \
@@ -144,14 +136,6 @@ jobs:
             "~/.cache/bazel_repository_cache"
             "~/.cache/bazelisk"
           key: bazel-other
-
-      - name: install libtinfo5
-        # clang tools load libtinfo5 for color diagnostics but `ubuntu-latest`
-        # runners already have `libtinfo.so.6` installed. We just create a
-        # symlink since it's faster than installing libtinfo5.
-        # https://github.com/circleci/circleci-images/issues/430#issuecomment-522602495
-        run: |
-          sudo ln -s /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5
 
       - run: |
           bazel \
