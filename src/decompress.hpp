@@ -18,6 +18,8 @@ enum class DecompressStatus : std::uint8_t
   NoCompressionLenMismatch,
   DstTooSmall,
   SrcTooSmall,
+  InvalidLitOrLen,
+  InvalidDistance,
 };
 
 namespace detail {
@@ -37,6 +39,19 @@ struct BlockHeader
 
 auto read_header(huffman::bit_span& compressed_bits)
     -> std::expected<BlockHeader, DecompressStatus>;
+
+/// Copies n bytes from (dst - distance) to dst, handling overlap by repeating.
+///
+/// From RFC 3.2.3:
+/// the referenced string may overlap the current position; for example, if the
+/// last 2 bytes decoded have values X and Y, a string reference with
+/// <length = 5, distance = 2> adds X,Y,X,Y,X to the output stream.
+///
+/// @pre dst - distance is valid.
+void copy_from_before(
+    std::uint16_t distance,
+    std::span<std::byte>::iterator dst,
+    std::uint16_t n);
 }  // namespace detail
 
 /// Decompresses the given source data into the destination buffer.

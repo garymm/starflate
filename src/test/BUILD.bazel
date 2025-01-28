@@ -6,6 +6,7 @@ cc_test(
     timeout = "short",
     srcs = ["decompress_test.cpp"],
     data = [
+        ":starfleet.html",
         ":starfleet.html.dynamic",
         ":starfleet.html.fixed",
     ],
