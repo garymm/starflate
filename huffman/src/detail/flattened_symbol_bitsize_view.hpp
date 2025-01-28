@@ -124,8 +124,7 @@ public:
     {}
 
     [[nodiscard]]
-    constexpr auto
-    operator*() const -> reference
+    constexpr auto operator*() const -> reference
     {
       const auto [symbols, bitsize] = parent_->base()[outer_index_];
       return {code{bitsize, {}}, symbols[inner_index_]};

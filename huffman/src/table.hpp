@@ -132,7 +132,8 @@ class table
 
     const auto frequencies = std::views::transform(
         reversed, [](const auto& elem) { return elem.frequency(); });
-    [[maybe_unused]] const auto total_freq =
+    [[maybe_unused]]
+    const auto total_freq =
         std::accumulate(std::cbegin(frequencies), std::cend(frequencies), 0UZ);
 
     encode_symbols();

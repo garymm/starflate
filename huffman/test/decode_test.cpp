@@ -89,9 +89,8 @@ auto main() -> int
     constexpr auto decoded = [] {
       constexpr auto encoded = std::array{
           //
-          std::byte{0b0111'1111}
-          //           ^^^ ^^^^
-          //           padding
+          std::byte{0b0111'1111}  //           ^^^ ^^^^
+                                  //           padding
       };
 
       auto buf = std::array<char, expected.size()>{};
@@ -205,9 +204,7 @@ auto main() -> int
     constexpr auto decoded = [] {
       constexpr auto encoded = std::array{
           std::byte{0b1111'1011},  //
-          std::byte{0b0001'0111}
-          //          ^^
-          //          padding
+          std::byte{0b0001'0111}   // starts with 2 bits of padding
       };
 
       auto buf = std::array<char, expected.size()>{};
@@ -257,9 +254,8 @@ auto main() -> int
           std::byte{0b0101'1111},
           std::byte{0b0011'0111},
           std::byte{0b0110'1001},
-          std::byte{0b0011'1101}
-          //          ^
-          //          padding
+          std::byte{0b0011'1101}  //          ^
+                                  //          padding
       };
 
       auto buf = std::array<char, expected.size()>{};

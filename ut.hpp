@@ -83,8 +83,7 @@ struct range_eq_ : op
   {}
 
   [[nodiscard]]
-  constexpr
-  operator bool() const
+  constexpr operator bool() const
   {
     return not error_;
   }

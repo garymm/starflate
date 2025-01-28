@@ -36,8 +36,8 @@ public:
     // NOLINTNEXTLINE(readability-magic-numbers)
     static_assert(CHAR_BIT == 8U, "everything assumes 8 bits per byte");
 
-    [[maybe_unused]] const auto msb =
-        64UZ - static_cast<std::size_t>(std::countl_zero(value));
+    [[maybe_unused]]
+    const auto msb = 64UZ - static_cast<std::size_t>(std::countl_zero(value));
     assert(msb <= std::size_t{bitsize} and "`value` exceeds `bitsize`");
   }
 
@@ -114,8 +114,7 @@ public:
   /// Compares two codes
   ///
   [[nodiscard]]
-  friend auto
-  operator<=>(const code&, const code&) = default;
+  friend auto operator<=>(const code&, const code&) = default;
 };
 
 namespace detail {
@@ -126,7 +125,7 @@ inline constexpr auto bit_shift = [](char c, std::size_t n) {
   return ((c - '0') == 0 ? 0UZ : 1UZ) << n;
 };
 
-}
+}  // namespace detail
 
 namespace literals {
 
