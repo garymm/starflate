@@ -100,11 +100,11 @@ bootlin_toolchain(
     libc_impl = "glibc",
 )
 
-TOOLCHAINS_LLVM_VERSION = "bba94f8138ab454d70afcd263788b34e2801e2ba"
+TOOLCHAINS_LLVM_VERSION = "b3c96d2dbc698eab752366bbe747e2a7df7fa504"
 
 http_archive(
     name = "toolchains_llvm",
-    integrity = "sha256-IyBbm0rakJat7jSGvZ65xVGS2xQQhbXvmx8Q5EA5wlA=",
+    integrity = "sha256-ZDefpvZja99JcCg37NO4dkdH11yN2zMrx2D77sWlWug=",
     strip_prefix = "toolchains_llvm-%s" % TOOLCHAINS_LLVM_VERSION,
     url = "https://github.com/bazel-contrib/toolchains_llvm/archive/%s.tar.gz" % TOOLCHAINS_LLVM_VERSION,
 )
@@ -131,7 +131,7 @@ llvm_toolchain(
         "": ["-fsanitize-link-c++-runtime"],
     },
     linux_x86_64_sysroot = "@gcc_toolchain_files//x86_64-buildroot-linux-gnu/sysroot",
-    llvm_version = "17.0.2",
+    llvm_version = "18.1.8",
 )
 
 # register llvm first, it has better error messages
