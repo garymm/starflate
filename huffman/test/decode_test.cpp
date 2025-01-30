@@ -32,18 +32,7 @@ constexpr auto code_table = [] {
 
 }  // namespace
 
-namespace test {
 
-namespace {
-
-constexpr auto verify(bool cond)
-{
-  if (not cond) {
-    throw std::runtime_error{""};
-  }
-}
-}  // namespace
-}  // namespace test
 
 auto main() -> int
 {
@@ -62,7 +51,7 @@ auto main() -> int
       return it == buf.begin();
     }();
 
-    static_assert(result);
+    expect(result);
   };
 
   test("just `e` - beginning not byte aligned") = [] {
@@ -78,7 +67,8 @@ auto main() -> int
           huffman::bit_span{encoded}.consume(CHAR_BIT - 1),
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      // NOTE: using assert because expect() doesn't work inside constexpr.
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -102,7 +92,7 @@ auto main() -> int
           huffman::bit_span{encoded}.consume(CHAR_BIT - 1),
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -123,7 +113,7 @@ auto main() -> int
 
       auto it = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -157,7 +147,7 @@ auto main() -> int
 
       auto it = huffman::decode(different_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -174,7 +164,7 @@ auto main() -> int
 
       auto it = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -193,7 +183,7 @@ auto main() -> int
 
       auto it = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -216,7 +206,7 @@ auto main() -> int
           huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 2},
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -237,7 +227,7 @@ auto main() -> int
 
       auto it = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -267,7 +257,7 @@ auto main() -> int
           huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 1},
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 

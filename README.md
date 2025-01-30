@@ -4,8 +4,7 @@ Deflate on various hardware platforms
 
 ## Set up
 
-Should work on Linux x86_64.
-MacOS is blocked on https://github.com/llvm/llvm-project/issues/79008 (or could downgrade to LLVM 18).
+Should work on Linux x86_64 and MacOS.
 
 * Install [bazelisk](https://github.com/bazelbuild/bazelisk/blob/master/README.md).
 

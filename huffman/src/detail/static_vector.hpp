@@ -36,9 +36,7 @@ public:
 
   constexpr auto reserve(size_type new_cap) -> void
   {
-    if (new_cap > Capacity) {
-      throw std::length_error{"`static_vector` capacity exceeded."};
-    }
+    assert(new_cap <= Capacity);
   }
 
   constexpr auto resize(size_type new_cap) -> void
