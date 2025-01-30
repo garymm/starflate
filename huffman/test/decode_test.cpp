@@ -6,7 +6,6 @@
 #include <array>
 #include <climits>
 #include <cstddef>
-#include <stdexcept>
 #include <utility>
 
 namespace {
@@ -32,8 +31,7 @@ constexpr auto code_table = [] {
 
 }  // namespace
 
-
-
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 auto main() -> int
 {
   using ::boost::ut::eq;
@@ -79,11 +77,7 @@ auto main() -> int
     static constexpr auto expected = std::array{'e'};
 
     constexpr auto decoded = [] {
-      constexpr auto encoded = std::array{
-          //
-          std::byte{0b0111'1111}  //           ^^^ ^^^^
-                                  //           padding
-      };
+      constexpr auto encoded = std::array{std::byte{0b0111'1111}};
 
       auto buf = std::array<char, expected.size()>{};
 
@@ -246,9 +240,7 @@ auto main() -> int
           std::byte{0b0101'1111},
           std::byte{0b0011'0111},
           std::byte{0b0110'1001},
-          std::byte{0b0011'1101}  //          ^
-                                  //          padding
-      };
+          std::byte{0b0011'1101}};
 
       auto buf = std::array<char, expected.size()>{};
 
