@@ -186,12 +186,13 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
+template <std::size_t LenExtent, std::size_t DistExtent>
 auto decompress_block_huffman(
     huffman::bit_span& src_bits,
     std::span<std::byte> dst,
     std::ptrdiff_t& dst_written,
-    const huffman::table<std::uint16_t, fixed_len_table_size>& len_table,
-    const huffman::table<std::uint16_t, fixed_dist_table_size>& dist_table)
+    const huffman::table<std::uint16_t, LenExtent>& len_table,
+    const huffman::table<std::uint16_t, DistExtent>& dist_table)
     -> DecompressStatus
 {
   while (true) {
@@ -230,6 +231,43 @@ auto decompress_block_huffman(
     }
   }
   return DecompressStatus::Success;
+}
+
+struct DynamicHuffmanTables
+{
+  huffman::table<std::uint16_t, std::dynamic_extent> len_table;
+  huffman::table<std::uint16_t, std::dynamic_extent> dist_table;
+};
+
+auto decode_dynamic_huffman_tables(huffman::bit_span& src_bits)
+    -> DynamicHuffmanTables
+{
+  // RFC 3.2.7: Dynamic Huffman codes
+  std::uint8_t h_lit{};
+  constexpr std::uint8_t kHLitBits = 5;
+  for (std::uint8_t i = 0; i < kHLitBits; i++) {
+    h_lit |=
+        static_cast<std::uint8_t>(static_cast<bool>(*src_bits.begin())) << i;
+    src_bits.consume(1);
+  }
+  const std::uint16_t n_len_codes = 257 + h_lit;
+  std::uint8_t h_dist{};
+  constexpr std::uint8_t kHDistBits = 5;
+  for (std::uint8_t i = 0; i < kHDistBits; i++) {
+    h_dist |=
+        static_cast<std::uint8_t>(static_cast<bool>(*src_bits.begin())) << i;
+    src_bits.consume(1);
+  }
+  const std::uint16_t n_dist_codes = 1 + h_dist;
+  std::uint8_t h_c_len{};
+  constexpr std::uint8_t kHCLenBits = 4;
+  for (std::uint8_t i = 0; i < kHCLenBits; i++) {
+    h_c_len |=
+        static_cast<std::uint8_t>(static_cast<bool>(*src_bits.begin())) << i;
+    src_bits.consume(1);
+  }
+  const std::uint16_t n_c_len_codes = 4 + h_c_len;
+  // TODO finish
 }
 }  // namespace
 
