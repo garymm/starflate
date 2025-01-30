@@ -4,7 +4,6 @@
 #include <array>
 #include <cstddef>
 #include <iterator>
-#include <stdexcept>
 #include <utility>
 
 namespace starflate::huffman::detail {
