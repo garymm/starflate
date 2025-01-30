@@ -162,6 +162,15 @@ auto main(int, char* argv[]) -> int
     expect(header.has_value())
         << "got error: " << static_cast<int>(header.error());
     expect(header->type == detail::BlockType::DynamicHuffman);
+
+    const std::vector<std::byte> expected_bytes =
+        read_runfile(*argv, "starflate/src/test/starfleet.html");
+    std::vector<std::byte> dst(expected_bytes.size());
+    const auto status = decompress(input_bytes, dst);
+    expect(status == DecompressStatus::Success)
+        << "got error code: " << static_cast<int>(status);
+    expect(std::ranges::equal(dst, expected_bytes))
+        << "decompressed does not match expected";
   };
 
   test("copy_from_before") = [] {
