@@ -1,6 +1,11 @@
 # starflate
 
-Deflate on various hardware platforms
+Deflate decompression in C++23.
+
+This started with the goal of implenting deflate decompression on a GPU, but
+it turns out that is basically impossible to parallelize. Compression is possible
+to parallelize, but I have not yet implemented it.
+
 
 ## Set up
 
@@ -38,27 +43,6 @@ Otherwise, copy the clangd args from the [.vscode/settings.json](.vscode/setting
 
 [![CI](https://github.com/garymm/starflate/actions/workflows/check.yml/badge.svg)](https://github.com/garymm/starflate/actions/workflows/check.yml) [![codecov](https://codecov.io/gh/garymm/starflate/graph/badge.svg?token=PGIMUPMNIF)](https://codecov.io/gh/garymm/starflate)
 
-### Done
-
-* Build Huffman code tables from given symbol frequencies.
-* Huffman decoding with C++ std lib.
-
-### TODO
-
-#### Basic
-
-* Implement Deflate decompression with C++ std lib.
-* Benchmark it on CPU.
-* Build system work to get it to run on GPU.
-* Port Deflate to GPU.
-* Benchmark it on GPU.
-
-#### Nice to have
-
-* Support chunked output. Started in
-  [2e6a83d622e](https://github.com/garymm/starflate/commit/2e6a83d622a0bbe6b65c757199b64511156b516c)
-  , but removed because it was adding too much complexity and I wanted to focus on getting the
-  basics working.
 
 ## References
 
