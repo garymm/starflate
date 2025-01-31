@@ -258,7 +258,7 @@ auto decode_dynamic_huffman_table(
 {
   constexpr std::uint8_t kRepeatPrevSymbol = 16;
   constexpr std::uint8_t kRepeat0For3BitsSymbol = 17;
-  constexpr std::uint8_t kRepeatZeroFor7BitsSymbol = 18;
+  constexpr std::uint8_t kRepeat0For7BitsSymbol = 18;
   std::vector<std::uint8_t> code_bitsizes(n_codes);
   for (std::uint16_t i = 0; i < n_codes; i++) {
     const auto length_code = huffman::decode_one(code_length_table, src_bits);
@@ -277,7 +277,7 @@ auto decode_dynamic_huffman_table(
       for (std::uint8_t j = 0; j < repeat_count; j++) {
         code_bitsizes[i + j] = code_bitsizes[i - 1];
       }
-      i += repeat_count - 1;
+      i += static_cast<std::uint16_t>(repeat_count - std::uint8_t{1});
     } else if (length_code.symbol() == kRepeat0For3BitsSymbol) {
       constexpr std::uint8_t kRepeatCountBits = 3;
       const std::uint8_t repeat_count =
@@ -285,15 +285,15 @@ auto decode_dynamic_huffman_table(
       for (std::uint8_t j = 0; j < repeat_count; j++) {
         code_bitsizes[i + j] = 0;
       }
-      i += repeat_count - 1;
-    } else if (length_code.symbol() == kRepeatZeroFor7BitsSymbol) {
+      i += static_cast<std::uint16_t>(repeat_count - std::uint8_t{1});
+    } else if (length_code.symbol() == kRepeat0For7BitsSymbol) {
       constexpr std::uint8_t kRepeatCountBits = 7;
       const std::uint8_t repeat_count =
           pop_bits<std::uint8_t>(src_bits, kRepeatCountBits) + 11;
       for (std::uint8_t j = 0; j < repeat_count; j++) {
         code_bitsizes[i + j] = 0;
       }
-      i += repeat_count - 1;
+      i += static_cast<std::uint16_t>(repeat_count - std::uint8_t{1});
     } else {
       return std::unexpected{DecompressStatus::InvalidLitOrLen};
     }
