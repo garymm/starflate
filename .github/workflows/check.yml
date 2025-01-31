@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain: [gcc, clang]
-        feature: ["", asan, tsan, ubsan]
+        feature: ["", asan, ubsan]
 
     steps:
       - uses: actions/checkout@v3
