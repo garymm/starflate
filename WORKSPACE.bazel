@@ -6,6 +6,9 @@ COMMON_CXX_FLAGS = [
     "-march=native",
     "-std=c++23",
     "-fdiagnostics-color=always",
+    # added to work around https://github.com/llvm/llvm-project/issues/79008
+    # but actually we probably don't want exceptions anyways.
+    "-fno-exceptions",
 ]
 
 COMMON_CXX_WARNINGS = [

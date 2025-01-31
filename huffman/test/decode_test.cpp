@@ -6,7 +6,6 @@
 #include <array>
 #include <climits>
 #include <cstddef>
-#include <stdexcept>
 #include <utility>
 
 namespace {
@@ -32,19 +31,7 @@ constexpr auto code_table = [] {
 
 }  // namespace
 
-namespace test {
-
-namespace {
-
-constexpr auto verify(bool cond)
-{
-  if (not cond) {
-    throw std::runtime_error{""};
-  }
-}
-}  // namespace
-}  // namespace test
-
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 auto main() -> int
 {
   using ::boost::ut::eq;
@@ -62,7 +49,7 @@ auto main() -> int
       return it == buf.begin();
     }();
 
-    static_assert(result);
+    expect(result);
   };
 
   test("just `e` - beginning not byte aligned") = [] {
@@ -73,12 +60,14 @@ auto main() -> int
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(
+      auto it [[maybe_unused]]
+      = huffman::decode(
           code_table,
           huffman::bit_span{encoded}.consume(CHAR_BIT - 1),
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      // NOTE: using assert because expect() doesn't work inside constexpr.
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -89,20 +78,17 @@ auto main() -> int
     static constexpr auto expected = std::array{'e'};
 
     constexpr auto decoded = [] {
-      constexpr auto encoded = std::array{
-          //
-          std::byte{0b0111'1111}  //           ^^^ ^^^^
-                                  //           padding
-      };
+      constexpr auto encoded = std::array{std::byte{0b0111'1111}};
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(
+      auto it [[maybe_unused]]
+      = huffman::decode(
           code_table,
           huffman::bit_span{encoded}.consume(CHAR_BIT - 1),
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -121,9 +107,10 @@ auto main() -> int
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(code_table, encoded, buf.begin());
+      auto it [[maybe_unused]]
+      = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -155,9 +142,10 @@ auto main() -> int
     constexpr auto decoded = [] {
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(different_table, encoded, buf.begin());
+      auto it [[maybe_unused]]
+      = huffman::decode(different_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -172,9 +160,10 @@ auto main() -> int
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(code_table, encoded, buf.begin());
+      auto it [[maybe_unused]]
+      = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -191,9 +180,10 @@ auto main() -> int
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(code_table, encoded, buf.begin());
+      auto it [[maybe_unused]]
+      = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -211,12 +201,13 @@ auto main() -> int
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(
+      auto it [[maybe_unused]]
+      = huffman::decode(
           code_table,
           huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 2},
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -235,9 +226,10 @@ auto main() -> int
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(code_table, encoded, buf.begin());
+      auto it [[maybe_unused]]
+      = huffman::decode(code_table, encoded, buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
@@ -256,18 +248,17 @@ auto main() -> int
           std::byte{0b0101'1111},
           std::byte{0b0011'0111},
           std::byte{0b0110'1001},
-          std::byte{0b0011'1101}  //          ^
-                                  //          padding
-      };
+          std::byte{0b0011'1101}};
 
       auto buf = std::array<char, expected.size()>{};
 
-      auto it = huffman::decode(
+      auto it [[maybe_unused]]
+      = huffman::decode(
           code_table,
           huffman::bit_span{encoded.data(), (encoded.size() * CHAR_BIT) - 1},
           buf.begin());
 
-      ::test::verify(it == buf.end());
+      assert(it == buf.end());
       return buf;
     }();
 
