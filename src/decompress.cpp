@@ -91,7 +91,7 @@ constexpr auto distance_infos = std::array<LengthInfo, 30>{
 /// @returns the n bits removed from the beginning of this.
 /// The bits are in the lower (rightmost) part of the return value.
 ///
-template <typename T>
+template <class T>
 auto pop_bits(huffman::bit_span& bits, std::uint8_t n) -> T
 {
   if constexpr (std::is_same_v<T, std::uint16_t>) {
