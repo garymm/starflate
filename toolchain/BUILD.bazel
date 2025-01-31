@@ -2,7 +2,6 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 package(features = [
     "-asan",
-    "-tsan",
     "-ubsan",
 ])
 
@@ -68,24 +67,6 @@ sh_test(
         "ERROR: AddressSanitizer: stack-use-after-scope",
     ],
     data = [":asan_feature"],
-)
-
-cc_binary(
-    name = "tsan_feature",
-    srcs = ["tsan_feature_available.cpp"],
-    features = ["tsan"],
-    target_compatible_with = linux_only,
-)
-
-sh_test(
-    name = "tsan_feature_available",
-    timeout = "short",
-    srcs = ["runtime_failure.sh"],
-    args = [
-        "$(location :tsan_feature)",
-        "WARNING: ThreadSanitizer: data race",
-    ],
-    data = [":tsan_feature"],
 )
 
 cc_binary(
