@@ -5,4 +5,4 @@ CompileFlags:
   # incorrect system include paths. These fix that.
   # Specifying non-existent include paths on other platforms doesn't cause issues
   # (e.g. mentioning linux-gnu works on MacOS).
-  Add: [-nostdinc++, -isystem, external/llvm_toolchain_files/include/x86_64-unknown-linux-gnu/c++/v1, -isystem, external/llvm_toolchain_files/include/c++/v1]
+  Add: [-nostdinc++, -isystem, external/llvm_toolchain_llvm/include/x86_64-unknown-linux-gnu/c++/v1, -isystem, external/llvm_toolchain_llvm/include/c++/v1]

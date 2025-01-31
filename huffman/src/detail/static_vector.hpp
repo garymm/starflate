@@ -4,7 +4,6 @@
 #include <array>
 #include <cstddef>
 #include <iterator>
-#include <stdexcept>
 #include <utility>
 
 namespace starflate::huffman::detail {
@@ -34,11 +33,9 @@ public:
   using base_type::data;
   using base_type::front;
 
-  constexpr auto reserve(size_type new_cap) -> void
+  constexpr auto reserve(size_type new_cap [[maybe_unused]]) -> void
   {
-    if (new_cap > Capacity) {
-      throw std::length_error{"`static_vector` capacity exceeded."};
-    }
+    assert(new_cap <= Capacity);
   }
 
   constexpr auto resize(size_type new_cap) -> void
