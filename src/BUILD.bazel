@@ -8,3 +8,19 @@ cc_library(
     hdrs = ["decompress.hpp"],
     deps = ["//huffman"],
 )
+
+cc_library(
+    name = "gunzip",
+    srcs = ["gunzip.cpp"],
+    hdrs = ["gunzip.hpp"],
+    deps = ["//huffman"],
+)
+
+cc_binary(
+    name = "gunzip_main",
+    srcs = ["gunzip_main.cpp"],
+    deps = [
+        ":decompress",
+        ":gunzip",
+    ],
+)
