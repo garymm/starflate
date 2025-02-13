@@ -6,6 +6,7 @@ This started with the goal of implenting deflate decompression on a GPU, but
 it turns out that is basically impossible to parallelize. Compression is possible
 to parallelize, but I have not yet implemented it.
 
+[Blog post with some reflections on this project](https://www.garymm.org/blog/2025/01/31/starflate/).
 
 ## Set up
 
